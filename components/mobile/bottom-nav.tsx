@@ -73,10 +73,12 @@ export function AppHeader() {
   return (
     <header className="sticky top-0 z-30 bg-white/90 backdrop-blur-md border-b border-slate-200">
       <div className="max-w-5xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
-        <Link href="/" className="flex items-center gap-2.5">
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-sky-600 to-cyan-500 flex items-center justify-center text-white font-black text-lg shadow-sm">
-            <ReceiptText className="w-5 h-5" />
-          </div>
+        <Link href="/" className="flex items-center gap-2.5 group">
+          <img
+            src="/logo.png"
+            alt="Smart Bill Logo"
+            className="w-9 h-9 rounded-xl shadow-xs transition-transform group-hover:scale-105 object-cover"
+          />
           <div>
             <span className="font-bold text-slate-900 tracking-tight text-lg">
               Smart Bill

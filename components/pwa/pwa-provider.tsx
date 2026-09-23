@@ -105,9 +105,11 @@ export function PWAProvider({ children }: { children: React.ReactNode }) {
           className="fixed top-3 left-3 right-3 sm:left-auto sm:right-4 sm:w-96 z-50 bg-slate-900 text-white p-3.5 rounded-2xl shadow-xl border border-slate-700 flex items-center justify-between gap-3 animate-in fade-in slide-in-from-top-4"
         >
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-sky-500 flex items-center justify-center text-white shrink-0">
-              <Download className="w-5 h-5" />
-            </div>
+            <img
+              src="/logo.png"
+              alt="Smart Bill"
+              className="w-10 h-10 rounded-xl object-cover shrink-0 shadow-xs"
+            />
             <div>
               <p className="text-xs font-semibold text-slate-100">Pasang Smart Bill</p>
               <p className="text-[11px] text-slate-300">Akses cepat & offline langsung dari Home Screen</p>
