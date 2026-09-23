@@ -12,16 +12,13 @@ import {
   Sparkles,
   Users,
   ChevronRight,
-  Smartphone,
 } from "lucide-react";
 import { getAllBills, StoredBillRecord } from "@/lib/storage/bill-storage";
 import { formatCurrency } from "@/lib/utils";
-import { usePWA } from "@/components/pwa/pwa-provider";
 
 export default function HomePage() {
   const [recentBills, setRecentBills] = useState<StoredBillRecord[]>([]);
   const [loading, setLoading] = useState(true);
-  const { isStandalone, openInstallGuide } = usePWA();
 
   useEffect(() => {
     getAllBills().then((list) => {
@@ -34,62 +31,18 @@ export default function HomePage() {
     <div className="min-h-screen bg-slate-50 pb-28 pt-4">
       <main className="max-w-xl mx-auto px-4 space-y-6">
         {/* Hero greeting */}
-        <div className="space-y-2">
-          <div className="flex items-center justify-between gap-2 flex-wrap">
-            <span className="text-xs font-bold text-sky-700 uppercase tracking-wider bg-sky-50 px-2.5 py-1 rounded-full border border-sky-200 inline-flex items-center gap-1">
-              <Sparkles className="w-3.5 h-3.5" />
-              Smart Bill & Receipt Splitter
-            </span>
-
-            {isStandalone && (
-              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 bg-emerald-50 text-emerald-800 border border-emerald-200/80 rounded-full text-[11px] font-semibold">
-                <CheckCircle2 className="w-3 h-3 text-emerald-600" />
-                <span>Mode Aplikasi (PWA)</span>
-              </span>
-            )}
-          </div>
-
-          <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
+        <div>
+          <span className="text-xs font-bold text-sky-700 uppercase tracking-wider bg-sky-50 px-2.5 py-1 rounded-full border border-sky-200 inline-flex items-center gap-1">
+            <Sparkles className="w-3.5 h-3.5" />
+            Smart Bill & Receipt Splitter
+          </span>
+          <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight mt-2">
             Mau bagi tagihan apa hari ini?
           </h1>
-          <p className="text-sm text-slate-500">
+          <p className="text-sm text-slate-500 mt-1">
             Hitung tagihan makan bareng secara adil, cepat, dan transparan tanpa ribet.
           </p>
         </div>
-
-        {/* PWA Install Banner Card: Only shown if opened via Web Browser */}
-        {!isStandalone && (
-          <div
-            onClick={openInstallGuide}
-            className="p-4 bg-gradient-to-r from-slate-900 via-slate-850 to-slate-800 text-white rounded-3xl shadow-md border border-slate-700/80 flex items-center justify-between gap-3 cursor-pointer group hover:border-sky-500/50 transition active:scale-[0.99]"
-            role="button"
-            tabIndex={0}
-            aria-label="Pasang Smart Bill di HP"
-          >
-            <div className="flex items-center gap-3 min-w-0">
-              <div className="w-11 h-11 rounded-2xl bg-sky-500/20 border border-sky-500/30 flex items-center justify-center text-sky-400 shrink-0">
-                <Smartphone className="w-5 h-5" />
-              </div>
-              <div className="min-w-0">
-                <div className="flex items-center gap-1.5">
-                  <p className="text-xs sm:text-sm font-bold text-white truncate">Pasang Smart Bill di HP</p>
-                  <span className="text-[10px] font-bold bg-sky-500/20 text-sky-300 px-1.5 py-0.2 rounded border border-sky-500/40 shrink-0">
-                    PWA
-                  </span>
-                </div>
-                <p className="text-[11px] text-slate-300 mt-0.5 truncate">
-                  Buka langsung dari Home Screen tanpa browser web
-                </p>
-              </div>
-            </div>
-            <div className="shrink-0">
-              <span className="px-3 py-1.5 bg-sky-500 group-hover:bg-sky-600 text-white text-xs font-semibold rounded-xl shadow-xs transition inline-flex items-center gap-1">
-                <span>Pasang</span>
-                <ArrowRight className="w-3 h-3" />
-              </span>
-            </div>
-          </div>
-        )}
 
         {/* Primary Action Buttons */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
