@@ -1,0 +1,113 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id        String   @id @default(uuid())
+  name      String
+  email     String   @unique
+  avatarUrl String?  @map("avatar_url")
+  bills     Bill[]
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("users")
+}
+
+model Bill {
+  id                 String           @id @default(uuid())
+  userId             String?          @map("user_id")
+  user               User?            @relation(fields: [userId], references: [id], onDelete: SetNull)
+  title              String
+  currency           String           @default("IDR")
+  subtotal           Int              @default(0)
+  discount           Int              @default(0)
+  serviceCharge      Int              @default(0) @map("service_charge")
+  tax                Int              @default(0)
+  additionalFee      Int              @default(0) @map("additional_fee")
+  total              Int              @default(0)
+  roundingAdjustment Int              @default(0) @map("rounding_adjustment")
+  taxBasis           String           @default("after_discount") @map("tax_basis")
+  serviceBasis       String           @default("before_discount") @map("service_basis")
+  status             String           @default("draft") // draft, calculated, completed
+  participants       Participant[]
+  items              Item[]
+  payments           Payment[]
+  receipts           Receipt[]
+  createdAt          DateTime         @default(now()) @map("created_at")
+  updatedAt          DateTime         @updatedAt @map("updated_at")
+
+  @@map("bills")
+}
+
+model Participant {
+  id           String           @id @default(uuid())
+  billId       String           @map("bill_id")
+  bill         Bill             @relation(fields: [billId], references: [id], onDelete: Cascade)
+  name         String
+  displayOrder Int              @default(0) @map("display_order")
+  assignments  ItemAssignment[]
+  payments     Payment[]
+  createdAt    DateTime         @default(now()) @map("created_at")
+
+  @@map("participants")
+}
+
+model Item {
+  id          String           @id @default(uuid())
+  billId      String           @map("bill_id")
+  bill        Bill             @relation(fields: [billId], references: [id], onDelete: Cascade)
+  name        String
+  quantity    Int              @default(1)
+  unitPrice   Int              @map("unit_price")
+  totalPrice  Int              @map("total_price")
+  assignments ItemAssignment[]
+  createdAt   DateTime         @default(now()) @map("created_at")
+
+  @@map("items")
+}
+
+model ItemAssignment {
+  id            String      @id @default(uuid())
+  itemId        String      @map("item_id")
+  item          Item        @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  participantId String      @map("participant_id")
+  participant   Participant @relation(fields: [participantId], references: [id], onDelete: Cascade)
+  shareType     String      @default("equal") @map("share_type") // equal, percentage, fixed
+  shareValue    Float       @default(1) @map("share_value")
+  amount        Int         @default(0)
+
+  @@map("item_assignments")
+}
+
+model Payment {
+  id            String      @id @default(uuid())
+  billId        String      @map("bill_id")
+  bill          Bill        @relation(fields: [billId], references: [id], onDelete: Cascade)
+  participantId String      @map("participant_id")
+  participant   Participant @relation(fields: [participantId], references: [id], onDelete: Cascade)
+  amount        Int
+  status        String      @default("pending") // pending, paid
+  paidAt        DateTime?   @map("paid_at")
+  createdAt     DateTime    @default(now()) @map("created_at")
+
+  @@map("payments")
+}
+
+model Receipt {
+  id            String   @id @default(uuid())
+  billId        String?  @map("bill_id")
+  bill          Bill?    @relation(fields: [billId], references: [id], onDelete: SetNull)
+  imageUrl      String?  @map("image_url")
+  ocrStatus     String   @default("pending") @map("ocr_status") // pending, processed, failed
+  rawOcrResult  String?  @map("raw_ocr_result")
+  parsedResult  String?  @map("parsed_result")
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  @@map("receipts")
+}
