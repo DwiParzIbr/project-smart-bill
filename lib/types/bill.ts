@@ -4,6 +4,21 @@ export interface Participant {
   id: string;
   name: string;
   displayOrder: number;
+  phone?: string;
+}
+
+export interface PaymentAccount {
+  id: string;
+  provider: string; // e.g. "BCA", "Mandiri", "BRI", "BNI", "Bank Jago", "SeaBank", "GoPay", "OVO", "DANA", "ShopeePay"
+  accountNumber: string; // e.g. "1234567890" or "08123456789"
+  accountHolder: string; // e.g. "Dwi Fariz"
+}
+
+export interface HostPaymentProfile {
+  hostName: string;
+  accounts: PaymentAccount[];
+  qrisImageUrl?: string | null;
+  customNotes?: string;
 }
 
 export interface ItemAssignment {

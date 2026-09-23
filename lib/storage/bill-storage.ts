@@ -1,9 +1,10 @@
-import { BillCalculationResult, BillData } from "../types/bill";
+import { BillCalculationResult, BillData, HostPaymentProfile } from "../types/bill";
 
 const DB_NAME = "smart_bill_db";
 const DB_VERSION = 1;
 const DRAFT_KEY = "smart_bill_active_draft";
 const STORE_BILLS = "bills";
+const PAYMENT_PROFILE_KEY = "smart_bill_payment_profile";
 
 function openDB(): Promise<IDBDatabase | null> {
   if (typeof window === "undefined" || !window.indexedDB) {
@@ -199,3 +200,45 @@ export async function updatePaymentStatus(
 
   await saveCompletedBill(record.bill, record.result);
 }
+
+export async function markAllParticipantsPaymentStatus(
+  billId: string,
+  status: "pending" | "paid"
+): Promise<StoredBillRecord | null> {
+  const record = await getBillById(billId);
+  if (!record) return null;
+
+  const timestamp = status === "paid" ? new Date().toISOString() : undefined;
+  record.result.participants.forEach((p) => {
+    p.paymentStatus = status;
+    p.paidAt = timestamp;
+  });
+
+  record.bill.status = status === "paid" ? "completed" : "calculated";
+  await saveCompletedBill(record.bill, record.result);
+  return record;
+}
+
+// ----------------- Host Payment Profile -----------------
+
+export function getHostPaymentProfile(): HostPaymentProfile | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = localStorage.getItem(PAYMENT_PROFILE_KEY);
+    if (!raw) return null;
+    return JSON.parse(raw) as HostPaymentProfile;
+  } catch (err) {
+    console.error("Failed to load host payment profile", err);
+    return null;
+  }
+}
+
+export function saveHostPaymentProfile(profile: HostPaymentProfile): void {
+  if (typeof window === "undefined") return;
+  try {
+    localStorage.setItem(PAYMENT_PROFILE_KEY, JSON.stringify(profile));
+  } catch (err) {
+    console.error("Failed to save host payment profile", err);
+  }
+}
+

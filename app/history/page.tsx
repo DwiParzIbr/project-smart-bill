@@ -156,16 +156,21 @@ export default function HistoryPage() {
                         {rec.bill.title}
                       </h3>
                       {allPaid ? (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-full text-[10px] font-bold shrink-0">
+                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-full text-[10px] font-bold shrink-0">
                           <CheckCircle2 className="w-3 h-3" />
-                          <span>Lunas</span>
+                          <span>Lunas Penuh</span>
                         </span>
-                      ) : (
+                      ) : paidCount > 0 ? (
                         <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-amber-50 text-amber-700 border border-amber-200 rounded-full text-[10px] font-bold shrink-0">
                           <Clock className="w-3 h-3" />
                           <span>
-                            {paidCount}/{rec.result.participants.length}
+                            {paidCount}/{rec.result.participants.length} Lunas
                           </span>
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-slate-100 text-slate-600 border border-slate-200 rounded-full text-[10px] font-bold shrink-0">
+                          <Clock className="w-3 h-3" />
+                          <span>Belum Bayar</span>
                         </span>
                       )}
                     </div>
