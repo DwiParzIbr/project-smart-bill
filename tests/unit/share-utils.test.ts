@@ -31,14 +31,14 @@ describe("Share Utils", () => {
   });
 
   describe("buildWhatsAppUrl", () => {
-    it("generates wa.me url with phone number and encoded text", () => {
+    it("generates whatsapp api url with phone number and encoded text", () => {
       const url = buildWhatsAppUrl("081234567890", "Halo Budi");
-      expect(url).toBe("https://wa.me/6281234567890?text=Halo%20Budi");
+      expect(url).toBe("https://api.whatsapp.com/send?phone=6281234567890&text=Halo%20Budi");
     });
 
-    it("generates generic wa.me share url when phone is omitted", () => {
+    it("generates generic whatsapp api url when phone is omitted", () => {
       const url = buildWhatsAppUrl("", "Halo Teman-teman");
-      expect(url).toBe("https://wa.me/?text=Halo%20Teman-teman");
+      expect(url).toBe("https://api.whatsapp.com/send?text=Halo%20Teman-teman");
     });
   });
 

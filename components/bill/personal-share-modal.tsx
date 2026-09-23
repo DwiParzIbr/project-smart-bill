@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   BillData,
   HostPaymentProfile,
@@ -20,6 +20,7 @@ import {
   ExternalLink,
   Phone,
   Sparkles,
+  Share2,
 } from "lucide-react";
 
 interface PersonalShareModalProps {
@@ -39,6 +40,13 @@ export function PersonalShareModal({
 }: PersonalShareModalProps) {
   const [phone, setPhone] = useState("");
   const [copied, setCopied] = useState(false);
+  const [hasNativeShare, setHasNativeShare] = useState(false);
+
+  useEffect(() => {
+    if (typeof navigator !== "undefined" && typeof navigator.share === "function") {
+      setHasNativeShare(true);
+    }
+  }, []);
 
   if (!isOpen || !participant) return null;
 
@@ -53,8 +61,19 @@ export function PersonalShareModal({
     }
   };
 
-  const handleOpenWhatsApp = () => {
-    window.open(waUrl, "_blank", "noopener,noreferrer");
+  const handleNativeShare = async () => {
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: `Rincian Tagihan: ${bill.title}`,
+          text: message,
+        });
+      } catch (err: any) {
+        if (err.name !== "AbortError") {
+          console.error("Native share error:", err);
+        }
+      }
+    }
   };
 
   return (
@@ -148,34 +167,48 @@ export function PersonalShareModal({
         </div>
 
         {/* Action Buttons */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-2 border-t border-slate-100">
-          <button
-            type="button"
-            onClick={handleCopy}
-            className="py-3 px-4 bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold rounded-2xl text-xs flex items-center justify-center gap-2 transition active:scale-98 min-touch-target"
-          >
-            {copied ? (
-              <>
-                <Check className="w-4 h-4 text-emerald-600" />
-                <span className="text-emerald-700">Tersalin!</span>
-              </>
-            ) : (
-              <>
-                <Copy className="w-4 h-4 text-slate-600" />
-                <span>Salin Teks Saja</span>
-              </>
-            )}
-          </button>
+        <div className="space-y-2 pt-2 border-t border-slate-100">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            <button
+              type="button"
+              onClick={handleCopy}
+              className="py-3 px-4 bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold rounded-2xl text-xs flex items-center justify-center gap-2 transition active:scale-98 min-touch-target"
+            >
+              {copied ? (
+                <>
+                  <Check className="w-4 h-4 text-emerald-600" />
+                  <span className="text-emerald-700">Tersalin!</span>
+                </>
+              ) : (
+                <>
+                  <Copy className="w-4 h-4 text-slate-600" />
+                  <span>Salin Teks Saja</span>
+                </>
+              )}
+            </button>
 
-          <button
-            type="button"
-            onClick={handleOpenWhatsApp}
-            className="py-3 px-4 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-2xl text-xs flex items-center justify-center gap-2 shadow-md shadow-emerald-600/20 transition active:scale-98 min-touch-target"
-          >
-            <MessageCircle className="w-4 h-4" />
-            <span>Buka WhatsApp</span>
-            <ExternalLink className="w-3.5 h-3.5 opacity-80" />
-          </button>
+            <a
+              href={waUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="py-3 px-4 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-2xl text-xs flex items-center justify-center gap-2 shadow-md shadow-emerald-600/20 transition active:scale-98 min-touch-target"
+            >
+              <MessageCircle className="w-4 h-4" />
+              <span>Buka WhatsApp</span>
+              <ExternalLink className="w-3.5 h-3.5 opacity-80" />
+            </a>
+          </div>
+
+          {hasNativeShare && (
+            <button
+              type="button"
+              onClick={handleNativeShare}
+              className="w-full py-2.5 px-4 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200/80 text-emerald-800 font-bold rounded-2xl text-xs flex items-center justify-center gap-2 transition active:scale-98 min-touch-target"
+            >
+              <Share2 className="w-4 h-4 text-emerald-700" />
+              <span>Kirim via Kontak HP (WhatsApp / Lainnya)</span>
+            </button>
+          )}
         </div>
       </div>
     </div>
