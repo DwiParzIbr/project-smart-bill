@@ -8,17 +8,21 @@ import {
   markAllParticipantsPaymentStatus,
   getHostPaymentProfile,
   saveHostPaymentProfile,
+  saveCompletedBill,
   StoredBillRecord,
 } from "@/lib/storage/bill-storage";
 import { formatCurrency } from "@/lib/utils";
 import { shareBill, generateWhatsAppSummary } from "@/lib/sharing/share-utils";
 import {
+  BillPayer,
   HostPaymentProfile,
   ParticipantCalculation,
 } from "@/lib/types/bill";
 import { PaymentProfileModal } from "@/components/bill/payment-profile-modal";
 import { QRISPreviewModal } from "@/components/bill/qris-preview-modal";
 import { PersonalShareModal } from "@/components/bill/personal-share-modal";
+import { DebtSimplificationCard } from "@/components/bill/debt-simplification-card";
+import { ReceiptCardModal } from "@/components/bill/receipt-card-modal";
 import { ConfirmDialog } from "@/components/ui/modal";
 import confetti from "canvas-confetti";
 import {
@@ -38,6 +42,7 @@ import {
   Settings,
   Filter,
   Users,
+  Repeat,
 } from "lucide-react";
 
 export default function BillResultPage() {
@@ -59,6 +64,7 @@ export default function BillResultPage() {
   // Modals
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [showQrisModal, setShowQrisModal] = useState(false);
+  const [showReceiptCardModal, setShowReceiptCardModal] = useState(false);
   const [sharingParticipant, setSharingParticipant] = useState<ParticipantCalculation | null>(null);
 
   useEffect(() => {
@@ -126,6 +132,13 @@ export default function BillResultPage() {
   const handleSaveProfile = (newProfile: HostPaymentProfile) => {
     saveHostPaymentProfile(newProfile);
     setProfile(newProfile);
+  };
+
+  const handleUpdatePayers = async (payers: BillPayer[]) => {
+    if (!record) return;
+    record.bill.payers = payers;
+    await saveCompletedBill(record.bill, record.result);
+    setRecord({ ...record });
   };
 
   const handleCopyAccount = async (accountNumber: string, index: number) => {
@@ -261,14 +274,22 @@ export default function BillResultPage() {
           </div>
         </div>
 
-        {/* Action Buttons: Share & Copy */}
-        <div className="grid grid-cols-2 gap-2.5">
+        {/* Action Buttons: Share, Aesthetic Card & Copy */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
           <button
             onClick={handleShare}
             className="py-3 px-4 bg-sky-600 hover:bg-sky-700 active:scale-98 text-white font-bold rounded-2xl shadow-md transition flex items-center justify-center gap-2 text-sm min-touch-target"
           >
             <Share2 className="w-4 h-4" />
             <span>Bagikan Semua</span>
+          </button>
+
+          <button
+            onClick={() => setShowReceiptCardModal(true)}
+            className="py-3 px-4 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 active:scale-98 text-white font-bold rounded-2xl shadow-md shadow-indigo-600/20 transition flex items-center justify-center gap-2 text-sm min-touch-target"
+          >
+            <Receipt className="w-4 h-4" />
+            <span>Struk Estetik</span>
           </button>
 
           <button
@@ -288,6 +309,13 @@ export default function BillResultPage() {
             )}
           </button>
         </div>
+
+        {/* 🔄 Feature 5: Multi-Payer Debt Simplification Card */}
+        <DebtSimplificationCard
+          bill={bill}
+          participants={result.participants}
+          onUpdatePayers={handleUpdatePayers}
+        />
 
         {/* 💳 Feature 1: Host Payment Info & QRIS Card */}
         <div className="p-4 sm:p-5 bg-white border border-slate-200/90 rounded-3xl shadow-xs space-y-3.5">
@@ -658,6 +686,14 @@ export default function BillResultPage() {
             : "Ya, Reset Status"
         }
         variant={bulkActionTarget === "paid" ? "primary" : "warning"}
+      />
+
+      {/* Feature 7: Aesthetic Receipt Card Modal */}
+      <ReceiptCardModal
+        isOpen={showReceiptCardModal}
+        onClose={() => setShowReceiptCardModal(false)}
+        bill={bill}
+        result={result}
       />
     </div>
   );

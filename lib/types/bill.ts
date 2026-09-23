@@ -61,6 +61,19 @@ export interface BillCharges {
   roundingMode: RoundingMode;
 }
 
+export interface BillPayer {
+  participantId: string;
+  amount: number;
+}
+
+export interface DebtSettlement {
+  fromParticipantId: string;
+  fromName: string;
+  toParticipantId: string;
+  toName: string;
+  amount: number;
+}
+
 export interface BillData {
   id: string;
   title: string;
@@ -70,6 +83,7 @@ export interface BillData {
   items: BillItem[];
   charges: BillCharges;
   status: "draft" | "calculated" | "completed";
+  payers?: BillPayer[];
   createdAt: string;
   updatedAt: string;
 }

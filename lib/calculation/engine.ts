@@ -2,6 +2,8 @@ import {
   BillCharges,
   BillCalculationResult,
   BillItem,
+  BillPayer,
+  DebtSettlement,
   ItemAssignment,
   Participant,
   ParticipantCalculation,
@@ -299,4 +301,90 @@ export function calculateBill(
     isBalanced,
     discrepancy,
   };
+}
+
+/**
+ * Calculates debt settlements with minimum number of transactions (Splitwise-style).
+ * Balances = (Paid upfront) - (Consumed / finalTotal)
+ * Pairs highest debtor with highest creditor until all debts are 0.
+ */
+export function calculateDebtSettlements(
+  participants: Participant[],
+  payers: BillPayer[] | undefined,
+  participantCalculations: ParticipantCalculation[]
+): DebtSettlement[] {
+  if (!participants || participants.length === 0) return [];
+
+  // Create lookup for names
+  const nameMap = new Map<string, string>();
+  participants.forEach((p) => nameMap.set(p.id, p.name));
+
+  // Determine total paid by each person
+  const paidMap = new Map<string, number>();
+  if (payers && payers.length > 0) {
+    payers.forEach((p) => {
+      paidMap.set(p.participantId, (paidMap.get(p.participantId) || 0) + p.amount);
+    });
+  } else {
+    // Default: first participant paid the entire bill
+    const totalBill = participantCalculations.reduce((sum, p) => sum + p.finalTotal, 0);
+    const hostId = participants[0]?.id;
+    if (hostId) paidMap.set(hostId, totalBill);
+  }
+
+  // Net balance = (what they paid in advance) - (what they owe for items)
+  // Positive = Creditor (deserves money)
+  // Negative = Debtor (owes money)
+  const balances = participants.map((p) => {
+    const paid = paidMap.get(p.id) || 0;
+    const calc = participantCalculations.find((c) => c.participantId === p.id);
+    const owed = calc ? calc.finalTotal : 0;
+    return {
+      id: p.id,
+      name: nameMap.get(p.id) || p.name,
+      net: paid - owed,
+    };
+  });
+
+  // Debtors have negative net, sort by largest absolute debt first
+  const debtors = balances
+    .filter((b) => b.net < -0.5)
+    .map((b) => ({ ...b, debt: -b.net }))
+    .sort((a, b) => b.debt - a.debt);
+
+  // Creditors have positive net, sort by largest credit first
+  const creditors = balances
+    .filter((b) => b.net > 0.5)
+    .map((b) => ({ ...b, credit: b.net }))
+    .sort((a, b) => b.credit - a.credit);
+
+  const settlements: DebtSettlement[] = [];
+  let dIdx = 0;
+  let cIdx = 0;
+
+  while (dIdx < debtors.length && cIdx < creditors.length) {
+    const debtor = debtors[dIdx];
+    const creditor = creditors[cIdx];
+
+    // Settle amount is the minimum of remaining debt or credit
+    const settleAmount = Math.min(debtor.debt, creditor.credit);
+
+    if (settleAmount >= 1) {
+      settlements.push({
+        fromParticipantId: debtor.id,
+        fromName: debtor.name,
+        toParticipantId: creditor.id,
+        toName: creditor.name,
+        amount: Math.round(settleAmount),
+      });
+    }
+
+    debtor.debt -= settleAmount;
+    creditor.credit -= settleAmount;
+
+    if (debtor.debt < 0.5) dIdx++;
+    if (creditor.credit < 0.5) cIdx++;
+  }
+
+  return settlements;
 }

@@ -22,6 +22,7 @@ import { ParsedReceiptData } from "@/lib/ocr/receipt-parser";
 import { performReceiptOCR } from "@/lib/ocr/client-ocr";
 import { OCRReviewTable } from "@/components/receipt/ocr-review-table";
 import { ReceiptImageModal } from "@/components/receipt/receipt-image-modal";
+import { ImageCropModal } from "@/components/receipt/image-crop-modal";
 import { BillData, BillItem } from "@/lib/types/bill";
 import { createDefaultBill } from "@/lib/storage/default-bill";
 import { saveDraft } from "@/lib/storage/bill-storage";
@@ -37,6 +38,10 @@ export default function ScanReceiptPage() {
   const [showKeyModal, setShowKeyModal] = useState(false);
   const [tempKey, setTempKey] = useState("");
   const [showImageDetail, setShowImageDetail] = useState(false);
+
+  // Crop & rotate state
+  const [rawFileToCrop, setRawFileToCrop] = useState<File | null>(null);
+  const [showCropModal, setShowCropModal] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const cameraInputRef = useRef<HTMLInputElement | null>(null);
@@ -61,11 +66,19 @@ export default function ScanReceiptPage() {
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      setSelectedFile(file);
-      const url = URL.createObjectURL(file);
-      setSelectedImage(url);
-      runOCR(file);
+      setRawFileToCrop(file);
+      setShowCropModal(true);
+      // Reset input value so user can pick the same file again if desired
+      e.target.value = "";
     }
+  };
+
+  const handleCropConfirm = (croppedFile: File) => {
+    setShowCropModal(false);
+    setSelectedFile(croppedFile);
+    const url = URL.createObjectURL(croppedFile);
+    setSelectedImage(url);
+    runOCR(croppedFile);
   };
 
   const runOCR = async (file: File) => {
@@ -492,6 +505,14 @@ export default function ScanReceiptPage() {
         isOpen={showImageDetail}
         onClose={() => setShowImageDetail(false)}
         imageUrl={selectedImage}
+      />
+
+      {/* Image Crop & Rotate Modal */}
+      <ImageCropModal
+        isOpen={showCropModal}
+        onClose={() => setShowCropModal(false)}
+        file={rawFileToCrop}
+        onConfirm={handleCropConfirm}
       />
     </div>
   );
