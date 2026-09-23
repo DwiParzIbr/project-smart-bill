@@ -3,8 +3,9 @@
 import React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, ReceiptText, Plus, History, ScanLine } from "lucide-react";
+import { Home, ReceiptText, Plus, History, ScanLine, Smartphone } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { usePWA } from "@/components/pwa/pwa-provider";
 
 export function BottomNav() {
   const pathname = usePathname();
@@ -69,6 +70,7 @@ export function BottomNav() {
 
 export function AppHeader() {
   const pathname = usePathname();
+  const { isStandalone, openInstallGuide } = usePWA();
 
   return (
     <header className="sticky top-0 z-30 bg-white/90 backdrop-blur-md border-b border-slate-200">
@@ -86,6 +88,18 @@ export function AppHeader() {
             </span>
           </div>
         </Link>
+
+        {/* Mobile Install button if accessed via browser */}
+        {!isStandalone && (
+          <button
+            onClick={openInstallGuide}
+            className="sm:hidden flex items-center gap-1 px-2.5 py-1 text-xs font-semibold bg-sky-50 text-sky-700 hover:bg-sky-100 active:scale-95 rounded-xl border border-sky-200 transition"
+            aria-label="Panduan Pasang Aplikasi"
+          >
+            <Smartphone className="w-3.5 h-3.5" />
+            <span>Pasang App</span>
+          </button>
+        )}
 
         {/* Desktop navigation */}
         <nav className="hidden sm:flex items-center gap-1 sm:gap-2">
@@ -131,6 +145,17 @@ export function AppHeader() {
             <Plus className="w-4 h-4" />
             Buat Bill
           </Link>
+
+          {!isStandalone && (
+            <button
+              onClick={openInstallGuide}
+              className="ml-1 inline-flex items-center gap-1.5 px-3 py-2 text-xs font-semibold text-slate-600 hover:text-sky-700 hover:bg-sky-50 rounded-xl border border-dashed border-slate-300 hover:border-sky-300 transition"
+              title="Panduan Pasang Aplikasi di HP"
+            >
+              <Smartphone className="w-3.5 h-3.5 text-sky-600" />
+              <span>Pasang di HP</span>
+            </button>
+          )}
         </nav>
       </div>
     </header>
