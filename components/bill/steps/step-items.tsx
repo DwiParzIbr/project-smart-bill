@@ -125,11 +125,11 @@ export function StepItems({ items, currency, onChange }: StepItemsProps) {
             >
               Jumlah (Qty)
             </label>
-            <div className="flex items-center bg-slate-50 border border-slate-200 rounded-xl p-1">
+            <div className="flex items-center justify-between bg-slate-50 border border-slate-200 rounded-xl p-1 min-h-[48px] h-12">
               <button
                 type="button"
                 onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                className="w-8 h-8 rounded-lg bg-white shadow-xs border border-slate-200 flex items-center justify-center text-slate-600 hover:text-slate-900 active:scale-90 transition min-touch-target"
+                className="w-8 h-8 shrink-0 rounded-lg bg-white shadow-xs border border-slate-200 flex items-center justify-center text-slate-600 hover:text-slate-900 active:scale-90 transition"
                 aria-label="Kurangi jumlah"
               >
                 <Minus className="w-3.5 h-3.5" />
@@ -139,16 +139,26 @@ export function StepItems({ items, currency, onChange }: StepItemsProps) {
                 type="number"
                 inputMode="numeric"
                 min="1"
+                max="999"
                 value={quantity}
-                onChange={(e) =>
-                  setQuantity(Math.max(1, parseInt(e.target.value, 10) || 1))
-                }
-                className="w-full text-center font-bold text-sm bg-transparent focus:outline-none"
+                onFocus={(e) => e.target.select()}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  if (val === "") {
+                    setQuantity(1);
+                    return;
+                  }
+                  const parsed = parseInt(val, 10);
+                  if (!isNaN(parsed)) {
+                    setQuantity(Math.max(1, Math.min(999, parsed)));
+                  }
+                }}
+                className="w-full min-w-0 text-center font-bold text-sm sm:text-base text-slate-900 bg-transparent focus:outline-none px-1 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
               />
               <button
                 type="button"
-                onClick={() => setQuantity(quantity + 1)}
-                className="w-8 h-8 rounded-lg bg-white shadow-xs border border-slate-200 flex items-center justify-center text-slate-600 hover:text-slate-900 active:scale-90 transition min-touch-target"
+                onClick={() => setQuantity(Math.min(999, quantity + 1))}
+                className="w-8 h-8 shrink-0 rounded-lg bg-white shadow-xs border border-slate-200 flex items-center justify-center text-slate-600 hover:text-slate-900 active:scale-90 transition"
                 aria-label="Tambah jumlah"
               >
                 <Plus className="w-3.5 h-3.5" />
@@ -249,7 +259,7 @@ export function StepItems({ items, currency, onChange }: StepItemsProps) {
                     >
                       <Minus className="w-3 h-3" />
                     </button>
-                    <span className="w-7 text-center font-bold text-xs text-slate-800">
+                    <span className="min-w-[28px] px-1 text-center font-bold text-xs text-slate-800">
                       {item.quantity}
                     </span>
                     <button
