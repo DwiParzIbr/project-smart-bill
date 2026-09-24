@@ -25,46 +25,22 @@ export function PrintableReimbursementSlip({
 
   return (
     <div className="printable-reimbursement-document font-sans text-slate-900 bg-white leading-normal">
-      <style jsx global>{`
-        @media print {
-          @page {
-            size: A4 portrait;
-            margin: 12mm 15mm;
-          }
-          body {
-            background: #ffffff !important;
-            color: #000000 !important;
-          }
-          /* Sembunyikan elemen web biasa saat cetak */
-          header,
-          footer,
-          nav,
-          .no-print {
-            display: none !important;
-          }
-          .page-break {
-            page-break-before: always;
-            break-before: page;
-          }
-        }
-      `}</style>
-
       {/* ========================================================================= */}
       {/* HALAMAN 1: FORMULIR KLAIM PENGGANTIAN BIAYA                               */}
       {/* ========================================================================= */}
-      <div className="max-w-[210mm] mx-auto p-4 sm:p-6 print:p-0">
+      <div className="a4-page w-[210mm] max-w-[210mm] mx-auto p-[12mm_15mm] box-border bg-white text-slate-900 text-xs">
         {/* Header Kop Surat */}
-        <div className="border-b-2 border-slate-900 pb-3 mb-5 flex items-center justify-between">
+        <div className="border-b-2 border-slate-900 pb-3 mb-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
             {/* Logo placeholder / Icon */}
-            <div className="w-12 h-12 rounded-xl bg-slate-900 text-white font-black text-xl flex items-center justify-center shrink-0 print:border print:border-black">
+            <div className="w-11 h-11 rounded-xl bg-slate-900 text-white font-black text-lg flex items-center justify-center shrink-0 border border-slate-900">
               SB
             </div>
             <div>
-              <h1 className="text-lg sm:text-xl font-black tracking-tight text-slate-900 uppercase">
-                {profile.companyName || "PT PERUSAHAAN INDONESIA"}
+              <h1 className="text-lg font-bold tracking-normal text-slate-900 uppercase">
+                {profile.companyName || "PT ASCON INOVASI DATA"}
               </h1>
-              <p className="text-xs text-slate-600 font-semibold tracking-wider uppercase">
+              <p className="text-[11px] text-slate-600 font-semibold tracking-wide uppercase">
                 Formulir Klaim Penggantian Biaya (Expense Reimbursement Claim)
               </p>
             </div>
@@ -80,7 +56,7 @@ export function PrintableReimbursementSlip({
         </div>
 
         {/* Informasi Pemohon & Dokumen (Grid 2 Kolom) */}
-        <div className="grid grid-cols-2 gap-3 p-3 bg-slate-50 border border-slate-200 rounded-xl mb-5 text-xs">
+        <div className="grid grid-cols-2 gap-3 p-3 bg-slate-50 border border-slate-200 rounded-lg mb-4 text-xs">
           <div className="space-y-1.5">
             <div className="flex">
               <span className="w-32 font-bold text-slate-600">Nama Pemohon:</span>
@@ -102,7 +78,7 @@ export function PrintableReimbursementSlip({
             </div>
             <div className="flex">
               <span className="w-32 font-bold text-slate-600">Kategori Biaya:</span>
-              <span className="text-slate-800">{profile.expenseCategory || "Makan Tim / Jamuan Klien"}</span>
+              <span className="text-slate-800">{profile.expenseCategory || "Makan Siang Tim (Team Lunch)"}</span>
             </div>
             <div className="flex">
               <span className="w-32 font-bold text-slate-600">Keperluan:</span>
@@ -111,14 +87,14 @@ export function PrintableReimbursementSlip({
           </div>
         </div>
 
-        {/* Tabel 1: Rincian Menu Pesanan */}
-        <div className="mb-5">
+        {/* Tabel 1: Rincian Item / Menu Pesanan */}
+        <div className="mb-4 print-avoid-break">
           <h2 className="text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">
             1. Rincian Item / Menu Pesanan
           </h2>
           <table className="w-full text-xs border border-slate-300 border-collapse">
             <thead>
-              <tr className="bg-slate-100 text-slate-700 font-bold border-b border-slate-300">
+              <tr className="bg-slate-100 text-slate-800 font-bold border-b border-slate-300">
                 <th className="py-2 px-2 text-center w-10 border-r border-slate-300">No</th>
                 <th className="py-2 px-3 text-left border-r border-slate-300">Deskripsi Menu / Item</th>
                 <th className="py-2 px-2 text-center w-16 border-r border-slate-300">Qty</th>
@@ -225,7 +201,7 @@ export function PrintableReimbursementSlip({
         </div>
 
         {/* Tabel 2: Daftar Hadir Karyawan / Peserta (Audit Trail) */}
-        <div className="mb-6">
+        <div className="mb-5 print-avoid-break">
           <div className="flex items-center justify-between mb-1.5">
             <h2 className="text-xs font-bold uppercase tracking-wider text-slate-700">
               2. Daftar Hadir Karyawan / Peserta ({result.participants.length} Orang)
@@ -236,12 +212,12 @@ export function PrintableReimbursementSlip({
           </div>
           <table className="w-full text-xs border border-slate-300 border-collapse">
             <thead>
-              <tr className="bg-slate-100 text-slate-700 font-bold border-b border-slate-300">
+              <tr className="bg-slate-100 text-slate-800 font-bold border-b border-slate-300">
                 <th className="py-1.5 px-2 text-center w-10 border-r border-slate-300">No</th>
                 <th className="py-1.5 px-3 text-left border-r border-slate-300">Nama Rekan / Karyawan</th>
                 <th className="py-1.5 px-3 text-right w-28 border-r border-slate-300">Pesanan (IDR)</th>
                 <th className="py-1.5 px-3 text-right w-28 border-r border-slate-300">Total Beban (IDR)</th>
-                <th className="py-1.5 px-3 text-center w-28">Tanda Tangan / Paraf</th>
+                <th className="py-1.5 px-3 text-center w-36">Tanda Tangan / Paraf</th>
               </tr>
             </thead>
             <tbody>
@@ -259,8 +235,8 @@ export function PrintableReimbursementSlip({
                   <td className="py-1 px-3 text-right font-semibold border-r border-slate-200">
                     {formatCurrency(p.finalTotal, bill.currency)}
                   </td>
-                  <td className="py-1 px-3 text-center text-slate-300">
-                    ________________
+                  <td className="py-1 px-3 text-center">
+                    <div className="w-24 mx-auto border-b border-slate-400 h-4"></div>
                   </td>
                 </tr>
               ))}
@@ -269,11 +245,12 @@ export function PrintableReimbursementSlip({
         </div>
 
         {/* Kolom Tanda Tangan Otorisasi (3 Kolom) */}
-        <div className="grid grid-cols-3 gap-3 border border-slate-300 text-xs text-center p-3 rounded-lg bg-white">
+        <div className="print-avoid-break grid grid-cols-3 gap-3 border border-slate-300 text-xs text-center p-3 rounded-lg bg-white">
           <div className="flex flex-col justify-between h-28 border-r border-slate-200 pr-2">
             <p className="font-bold text-slate-700">Diajukan Oleh (Pemohon):</p>
             <div>
-              <p className="font-bold underline text-slate-900">
+              <div className="w-32 mx-auto border-b border-slate-700 mb-1"></div>
+              <p className="font-bold text-slate-900">
                 {profile.employeeName || "Karyawan"}
               </p>
               <p className="text-[10px] text-slate-500">Tgl: {bill.date}</p>
@@ -283,16 +260,18 @@ export function PrintableReimbursementSlip({
           <div className="flex flex-col justify-between h-28 border-r border-slate-200 px-2">
             <p className="font-bold text-slate-700">Diperiksa Oleh (Finance):</p>
             <div>
-              <p className="text-slate-400">________________________</p>
-              <p className="text-[10px] text-slate-500 mt-1">Tgl: ______________</p>
+              <div className="w-32 mx-auto border-b border-slate-400 mb-1"></div>
+              <p className="text-slate-600 text-[11px]">Bagian Keuangan / Finance</p>
+              <p className="text-[10px] text-slate-500">Tgl: ______________</p>
             </div>
           </div>
 
           <div className="flex flex-col justify-between h-28 pl-2">
             <p className="font-bold text-slate-700">Disetujui Oleh (Atasan/Head):</p>
             <div>
-              <p className="text-slate-400">________________________</p>
-              <p className="text-[10px] text-slate-500 mt-1">Tgl: ______________</p>
+              <div className="w-32 mx-auto border-b border-slate-400 mb-1"></div>
+              <p className="text-slate-600 text-[11px]">Atasan Langsung / Manager</p>
+              <p className="text-[10px] text-slate-500">Tgl: ______________</p>
             </div>
           </div>
         </div>
@@ -302,32 +281,34 @@ export function PrintableReimbursementSlip({
       {/* HALAMAN 2: LAMPIRAN BUKTI FISIK STRUK ASLI (RECEIPT ATTACHMENT)          */}
       {/* ========================================================================= */}
       {bill.receiptImageUrl && (
-        <div className="page-break max-w-[210mm] mx-auto p-4 sm:p-6 print:p-0 print:pt-6 mt-8 print:mt-0">
-          <div className="border-b-2 border-slate-900 pb-3 mb-4 flex items-center justify-between">
+        <div className="print-page-break a4-page w-[210mm] max-w-[210mm] mx-auto p-[12mm_15mm] box-border bg-white text-slate-900 font-sans text-xs">
+          <div className="border-b-2 border-slate-900 pb-2.5 mb-4 flex items-center justify-between">
             <div>
-              <h2 className="text-base font-black tracking-tight uppercase text-slate-900">
+              <h2 className="text-base font-bold tracking-normal uppercase text-slate-900">
                 Lampiran Bukti Fisik Struk Asli (Original Receipt)
               </h2>
-              <p className="text-xs text-slate-600">
-                Nomor Dokumen: <span className="font-bold text-slate-800">{claimNumber}</span> | Vendor: {bill.title}
+              <p className="text-xs text-slate-600 mt-0.5">
+                Nomor Dokumen: <span className="font-bold text-slate-800">{claimNumber}</span> | Vendor: <span className="font-semibold text-slate-800">{bill.title}</span> | Tanggal: {bill.date}
               </p>
             </div>
-            <div className="text-right text-[11px] text-slate-500 font-medium">
-              Lampiran Halaman 2
+            <div className="text-right">
+              <span className="inline-block px-2.5 py-1 text-[11px] font-bold bg-slate-100 border border-slate-300 rounded text-slate-800">
+                Lampiran Hal. 2
+              </span>
             </div>
           </div>
 
-          <div className="border-2 border-dashed border-slate-300 rounded-2xl p-4 flex flex-col items-center justify-center bg-slate-50/50 min-h-[500px]">
-            <div className="max-w-md w-full bg-white p-2 rounded-xl shadow-sm border border-slate-200">
+          <div className="border-2 border-dashed border-slate-300 rounded-xl p-4 flex flex-col items-center justify-center bg-slate-50/50">
+            <div className="max-w-md w-full bg-white p-2 rounded-lg shadow-xs border border-slate-200 flex items-center justify-center">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={bill.receiptImageUrl}
                 alt="Bukti Struk Fisik"
-                className="w-full max-h-[700px] object-contain rounded-lg mx-auto"
+                className="max-w-full max-h-[190mm] object-contain rounded mx-auto"
               />
             </div>
-            <p className="text-xs text-slate-500 mt-4 text-center font-medium">
-              Foto struk fisik asli yang diunggah/di-scan sebagai dokumen pendukung klaim biaya.
+            <p className="text-[11px] text-slate-500 mt-3 text-center font-medium">
+              Dokumen bukti transaksi fisik asli yang dilampirkan sebagai syarat sah verifikasi perpajakan & audit internal bagian Finance/HRD.
             </p>
           </div>
         </div>

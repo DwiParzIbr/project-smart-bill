@@ -48,3 +48,77 @@ body {
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
+
+/* ========================================================================= */
+/* Print Optimization: A4 Corporate Reimbursement Slip                      */
+/* ========================================================================= */
+@media print {
+  /* 1. Zero margin removes browser default header (date) & footer (URL/pages) */
+  @page {
+    size: A4 portrait;
+    margin: 0;
+  }
+
+  /* 2. Hide everything inside <body> EXCEPT the dedicated print document */
+  body > *:not(#corporate-reimbursement-print-area) {
+    display: none !important;
+  }
+
+  header,
+  nav,
+  footer,
+  aside,
+  [role="dialog"] {
+    display: none !important;
+  }
+
+  /* 3. Full bleed clean container for A4 document */
+  html,
+  body {
+    margin: 0 !important;
+    padding: 0 !important;
+    background: #ffffff !important;
+    color: #000000 !important;
+    width: 100% !important;
+    height: auto !important;
+    min-height: auto !important;
+    overflow: visible !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* 4. Display the dedicated print area */
+  #corporate-reimbursement-print-area {
+    display: block !important;
+    position: static !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: #ffffff !important;
+    color: #000000 !important;
+    overflow: visible !important;
+  }
+
+  /* 5. Force exact color printing for borders, headers, and badges */
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* 6. Page break and break-avoidance utilities */
+  .print-page-break {
+    page-break-before: always !important;
+    break-before: page !important;
+  }
+
+  .print-avoid-break {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+
+  .no-print {
+    display: none !important;
+  }
+}
+
