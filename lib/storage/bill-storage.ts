@@ -176,6 +176,22 @@ export async function deleteBill(id: string): Promise<void> {
   }
 }
 
+export async function clearAllBills(): Promise<void> {
+  const db = await openDB();
+  if (db) {
+    await new Promise<void>((resolve) => {
+      const tx = db.transaction(STORE_BILLS, "readwrite");
+      tx.objectStore(STORE_BILLS).clear();
+      tx.oncomplete = () => resolve();
+      tx.onerror = () => resolve();
+    });
+  }
+
+  if (typeof window !== "undefined") {
+    localStorage.removeItem("smart_bill_history");
+  }
+}
+
 export async function updatePaymentStatus(
   billId: string,
   participantId: string,
