@@ -51,16 +51,16 @@ export function BottomNav() {
                 aria-label="Scan Struk"
               >
                 {/* Tombol Bulat Menonjol (Elevated Circle) */}
-                <div className="absolute -top-4 flex items-center justify-center">
+                <div className="absolute -top-4.5 flex items-center justify-center">
                   <div
                     className={cn(
-                      "w-12 h-12 rounded-full flex items-center justify-center text-white transition-all duration-150 shadow-md active:scale-95 group-hover:scale-105 border-[3.5px] border-white",
+                      "w-[50px] h-[50px] rounded-full flex items-center justify-center text-white transition-all duration-150 shadow-md active:scale-95 group-hover:scale-105 border-[3.5px] border-white",
                       isActive
                         ? "bg-gradient-to-tr from-sky-600 to-cyan-500 shadow-sky-500/40 ring-2 ring-sky-400/40"
                         : "bg-gradient-to-tr from-sky-500 to-cyan-400 shadow-sky-500/30"
                     )}
                   >
-                    <Icon className="w-5 h-5 stroke-[2.2]" />
+                    <Icon className="w-6 h-6 stroke-[2.2]" />
                   </div>
                 </div>
                 {/* Spacer h-5 agar posisi teks sejajar sempurna dengan item lainnya */}
