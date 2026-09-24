@@ -243,9 +243,9 @@ describe("Reimbursement Export & Helpers", () => {
 
     it("creates a valid XLSX workbook with correct sheets and column widths", () => {
       const wb = generateReimbursementWorkbook(mockBill, mockResult, {
-        companyName: "PT ASCON INOVASI DATA",
-        employeeName: "Dwifi Parizza Ibrahim",
-        employeeId: "IT-FARIZ-2026",
+        companyName: "PT Teknologi Maju",
+        employeeName: "Budi Santoso",
+        employeeId: "EMP-12345",
         department: "IT",
         expenseCategory: "Makan Siang Tim",
       });
@@ -264,9 +264,9 @@ describe("Reimbursement Export & Helpers", () => {
       const json = XLSX.utils.sheet_to_json(ws, { header: 1 }) as any[][];
       const flatText = json.flat().join(" ");
 
-      expect(flatText).toContain("PT ASCON INOVASI DATA");
-      expect(flatText).toContain("Dwifi Parizza Ibrahim");
-      expect(flatText).toContain("IT-FARIZ-2026");
+      expect(flatText).toContain("PT Teknologi Maju");
+      expect(flatText).toContain("Budi Santoso");
+      expect(flatText).toContain("EMP-12345");
       expect(flatText).toContain("Nasi Padang");
       expect(flatText).toContain("55000");
       expect(flatText).toContain("Lima Puluh Lima Ribu Rupiah");

@@ -38,7 +38,7 @@ export function PrintableReimbursementSlip({
             </div>
             <div>
               <h1 className="text-lg font-bold tracking-normal text-slate-900 uppercase">
-                {profile.companyName || "PT ASCON INOVASI DATA"}
+                {profile.companyName || "NAMA PERUSAHAAN"}
               </h1>
               <p className="text-[11px] text-slate-600 font-semibold tracking-wide uppercase">
                 Formulir Klaim Penggantian Biaya (Expense Reimbursement Claim)

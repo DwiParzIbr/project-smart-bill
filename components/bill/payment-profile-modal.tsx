@@ -192,7 +192,7 @@ export function PaymentProfileModal({
               type="text"
               value={hostName}
               onChange={(e) => setHostName(e.target.value)}
-              placeholder="Contoh: Dwi Fariz"
+              placeholder="Contoh: Budi Santoso"
               className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:ring-2 focus:ring-sky-500 focus:bg-white focus:outline-none"
             />
           </div>
@@ -280,7 +280,7 @@ export function PaymentProfileModal({
                           e.target.value
                         )
                       }
-                      placeholder="Atas Nama (a.n), contoh: Dwi Fariz"
+                      placeholder="Atas Nama (a.n), contoh: Budi Santoso"
                       className="w-full px-3 py-1.5 bg-white/70 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-sky-500 focus:outline-none"
                     />
                   </div>

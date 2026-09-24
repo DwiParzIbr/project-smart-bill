@@ -25,7 +25,7 @@ export function generateReimbursementWorkbook(
     ["No. Dokumen:", claimNumber, "", "Tanggal Transaksi:", bill.date],
     [
       "Nama Perusahaan:",
-      profile?.companyName || "PT ASCON INOVASI DATA",
+      profile?.companyName || "-",
       "",
       "Nama Merchant:",
       bill.title,

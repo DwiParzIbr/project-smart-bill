@@ -418,7 +418,7 @@ export default function ProfilePage() {
                       companyName: e.target.value,
                     })
                   }
-                  placeholder="Contoh: PT ASCON INOVASI DATA"
+                  placeholder="Contoh: PT Maju Bersama"
                   className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-900 focus:bg-white focus:ring-2 focus:ring-indigo-500 focus:outline-none"
                 />
               </div>
@@ -436,7 +436,7 @@ export default function ProfilePage() {
                       employeeName: e.target.value,
                     })
                   }
-                  placeholder="Contoh: Dwifi Parizza Ibrahim"
+                  placeholder="Contoh: Budi Santoso"
                   className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-900 focus:bg-white focus:ring-2 focus:ring-indigo-500 focus:outline-none"
                 />
               </div>
@@ -455,7 +455,7 @@ export default function ProfilePage() {
                         employeeId: e.target.value,
                       })
                     }
-                    placeholder="Contoh: IT-FARIZ-2026"
+                    placeholder="Contoh: EMP-12345"
                     className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-900 focus:bg-white focus:ring-2 focus:ring-indigo-500 focus:outline-none"
                   />
                 </div>
@@ -473,7 +473,7 @@ export default function ProfilePage() {
                         department: e.target.value,
                       })
                     }
-                    placeholder="Contoh: IT / Operasional"
+                    placeholder="Contoh: Operasional / HRD"
                     className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-900 focus:bg-white focus:ring-2 focus:ring-indigo-500 focus:outline-none"
                   />
                 </div>
