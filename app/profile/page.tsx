@@ -151,7 +151,7 @@ export default function ProfilePage() {
               <p className="text-xs text-slate-500 truncate mt-0.5">
                 {corporateProfile?.companyName
                   ? `${corporateProfile.companyName} • ${corporateProfile.department || "Karyawan"}`
-                  : "Smart Bill & Receipt Splitter"}
+                  : "Smart Bill"}
               </p>
               <p className="text-[11px] text-emerald-600 font-semibold mt-1 flex items-center gap-1">
                 <ShieldCheck className="w-3.5 h-3.5" />
@@ -365,7 +365,7 @@ export default function ProfilePage() {
         {/* Section 4: Tentang Aplikasi */}
         <div className="text-center py-4 space-y-1">
           <p className="text-xs font-bold text-slate-600">
-            Smart Bill & Receipt Splitter
+            Smart Bill
           </p>
           <p className="text-[11px] text-slate-400">
             Versi 1.2.0 • Progressive Web App (PWA)

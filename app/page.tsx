@@ -32,11 +32,7 @@ export default function HomePage() {
       <main className="max-w-xl mx-auto px-4 space-y-6">
         {/* Hero greeting */}
         <div>
-          <span className="text-xs font-bold text-sky-700 uppercase tracking-wider bg-sky-50 px-2.5 py-1 rounded-full border border-sky-200 inline-flex items-center gap-1">
-            <Sparkles className="w-3.5 h-3.5" />
-            Smart Bill & Receipt Splitter
-          </span>
-          <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight mt-2">
+          <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
             Mau bagi tagihan apa hari ini?
           </h1>
           <p className="text-sm text-slate-500 mt-1">

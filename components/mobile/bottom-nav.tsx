@@ -6,7 +6,7 @@ import { usePathname } from "next/navigation";
 import {
   Home,
   PlusCircle,
-  Camera,
+  ScanLine,
   History,
   User,
 } from "lucide-react";
@@ -24,7 +24,7 @@ export function BottomNav() {
   const navItems = [
     { href: "/", label: "Home", icon: Home },
     { href: "/create", label: "Buat Bill", icon: PlusCircle },
-    { href: "/scan", label: "Scan", icon: Camera, isElevated: true },
+    { href: "/scan", label: "Scan", icon: ScanLine, isElevated: true },
     { href: "/history", label: "Riwayat", icon: History },
     { href: "/profile", label: "Saya", icon: User },
   ];
@@ -32,11 +32,7 @@ export function BottomNav() {
   return (
     <nav
       aria-label="Navigasi Bawah Utama"
-      className="fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-slate-200/80 shadow-[0_-4px_20px_rgba(0,0,0,0.04)] sm:hidden"
-      style={{
-        paddingBottom: "max(8px, env(safe-area-inset-bottom, 8px))",
-        paddingTop: "6px",
-      }}
+      className="fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-slate-200/90 shadow-[0_-2px_10px_rgba(0,0,0,0.03)] sm:hidden pt-1 pb-1"
     >
       <div className="grid grid-cols-5 items-end max-w-md mx-auto px-1 relative">
         {navItems.map((item) => {
@@ -49,24 +45,24 @@ export function BottomNav() {
                 key={item.href}
                 href={item.href}
                 className="relative -top-3.5 flex flex-col items-center justify-center group min-touch-target"
-                aria-label="Scan Struk dengan AI"
+                aria-label="Scan Struk"
               >
                 <div
                   className={cn(
-                    "w-12 h-12 rounded-full flex items-center justify-center text-white transition-all duration-200 shadow-md active:scale-95 group-hover:scale-105 ring-4 ring-white",
+                    "w-12 h-12 rounded-full flex items-center justify-center text-white transition-all duration-150 shadow-md active:scale-95 group-hover:scale-105 border-[3px] border-white",
                     isActive
-                      ? "bg-gradient-to-tr from-sky-600 to-cyan-500 shadow-sky-500/40 ring-sky-100"
-                      : "bg-gradient-to-tr from-sky-500 to-cyan-500 shadow-sky-500/30"
+                      ? "bg-gradient-to-tr from-sky-600 to-cyan-500 shadow-sky-500/40"
+                      : "bg-gradient-to-tr from-sky-500 to-cyan-400 shadow-sky-500/30"
                   )}
                 >
                   <Icon className="w-5 h-5 stroke-[2.2]" />
                 </div>
                 <span
                   className={cn(
-                    "text-[10px] mt-1 leading-none tracking-tight transition-colors",
+                    "text-[10px] mt-0.5 leading-none tracking-tight",
                     isActive
                       ? "text-sky-600 font-bold"
-                      : "text-slate-600 font-semibold"
+                      : "text-slate-600 font-medium"
                   )}
                 >
                   {item.label}
@@ -80,25 +76,25 @@ export function BottomNav() {
               key={item.href}
               href={item.href}
               className={cn(
-                "flex flex-col items-center justify-center py-1 transition-all group min-touch-target",
+                "flex flex-col items-center justify-center py-0.5 transition-all group min-touch-target",
                 isActive
                   ? "text-sky-600 font-bold"
-                  : "text-slate-400 hover:text-slate-700 font-medium"
+                  : "text-slate-500 hover:text-slate-800 font-medium"
               )}
             >
-              <div className="relative flex items-center justify-center h-6">
+              <div className="relative flex items-center justify-center h-5">
                 <Icon
                   className={cn(
                     "w-5 h-5 transition-transform duration-150",
                     isActive
-                      ? "scale-110 text-sky-600 stroke-[2.3]"
+                      ? "scale-105 text-sky-600 stroke-[2.3]"
                       : "stroke-[1.8] group-hover:scale-105"
                   )}
                 />
               </div>
               <span
                 className={cn(
-                  "text-[10px] mt-1 leading-none tracking-tight transition-colors",
+                  "text-[10px] mt-0.5 leading-none tracking-tight transition-colors",
                   isActive ? "text-sky-600 font-bold" : "text-slate-500"
                 )}
               >
@@ -127,9 +123,6 @@ export function AppHeader() {
           <div>
             <span className="font-bold text-slate-900 tracking-tight text-lg">
               Smart Bill
-            </span>
-            <span className="hidden sm:inline-block ml-2 text-xs font-medium px-2 py-0.5 bg-sky-50 text-sky-700 rounded-full border border-sky-200">
-              PWA Splitter
             </span>
           </div>
         </Link>
@@ -187,8 +180,8 @@ export function AppHeader() {
             href="/scan"
             className="ml-2 inline-flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-sky-600 to-cyan-600 hover:from-sky-700 hover:to-cyan-700 active:scale-95 text-white text-sm font-semibold rounded-xl shadow-sm transition"
           >
-            <Camera className="w-4 h-4" />
-            Scan Struk AI
+            <ScanLine className="w-4 h-4" />
+            Scan Struk
           </Link>
         </nav>
       </div>
