@@ -7,7 +7,7 @@ import {
   BillData,
   CorporateReimbursementProfile,
 } from "@/lib/types/bill";
-import { downloadReimbursementCSV } from "@/lib/export/reimbursement-csv-generator";
+import { downloadReimbursementExcel } from "@/lib/export/reimbursement-excel-generator";
 import { PrintableReimbursementSlip } from "./printable-reimbursement-slip";
 import {
   X,
@@ -137,8 +137,8 @@ export function CorporateReimbursementModal({
     }, 50);
   };
 
-  const handleDownloadCSV = () => {
-    downloadReimbursementCSV(
+  const handleDownloadExcel = () => {
+    downloadReimbursementExcel(
       { ...bill, receiptImageUrl: receiptImage || undefined },
       result,
       profile
@@ -411,11 +411,11 @@ export function CorporateReimbursementModal({
           <div className="p-4 sm:p-5 border-t border-slate-100 bg-slate-50/50 flex flex-col sm:flex-row gap-2.5 shrink-0">
             <button
               type="button"
-              onClick={handleDownloadCSV}
+              onClick={handleDownloadExcel}
               className="flex-1 py-3 px-4 bg-white border border-slate-200 hover:bg-slate-100 active:scale-98 text-slate-800 font-bold rounded-2xl text-xs sm:text-sm flex items-center justify-center gap-2 shadow-xs transition min-touch-target"
             >
               <FileSpreadsheet className="w-4 h-4 text-emerald-600" />
-              <span>{copiedNotification ? "✓ File Excel Diunduh!" : "Unduh Excel (CSV)"}</span>
+              <span>{copiedNotification ? "✓ File Excel (.xlsx) Diunduh!" : "Unduh Excel (.xlsx)"}</span>
             </button>
 
             <button
