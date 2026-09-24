@@ -6,10 +6,9 @@ import { usePathname } from "next/navigation";
 import {
   Home,
   PlusCircle,
-  ScanLine,
+  Camera,
   History,
   User,
-  Plus,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -25,7 +24,7 @@ export function BottomNav() {
   const navItems = [
     { href: "/", label: "Home", icon: Home },
     { href: "/create", label: "Buat Bill", icon: PlusCircle },
-    { href: "/scan", label: "Scan", icon: ScanLine, isElevated: true },
+    { href: "/scan", label: "Scan", icon: Camera, isElevated: true },
     { href: "/history", label: "Riwayat", icon: History },
     { href: "/profile", label: "Saya", icon: User },
   ];
@@ -33,9 +32,9 @@ export function BottomNav() {
   return (
     <nav
       aria-label="Navigasi Bawah Utama"
-      className="fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-slate-200/80 sm:hidden"
+      className="fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-slate-200/80 shadow-[0_-4px_20px_rgba(0,0,0,0.04)] sm:hidden"
       style={{
-        paddingBottom: "max(12px, env(safe-area-inset-bottom, 16px))",
+        paddingBottom: "max(8px, env(safe-area-inset-bottom, 8px))",
         paddingTop: "6px",
       }}
     >
@@ -49,25 +48,25 @@ export function BottomNav() {
               <Link
                 key={item.href}
                 href={item.href}
-                className="relative -top-4 flex flex-col items-center justify-center group min-touch-target"
+                className="relative -top-3.5 flex flex-col items-center justify-center group min-touch-target"
                 aria-label="Scan Struk dengan AI"
               >
                 <div
                   className={cn(
-                    "w-13 h-13 rounded-full flex items-center justify-center text-white transition-all shadow-lg active:scale-95 group-hover:scale-105 border-[3.5px] border-white",
+                    "w-12 h-12 rounded-full flex items-center justify-center text-white transition-all duration-200 shadow-md active:scale-95 group-hover:scale-105 ring-4 ring-white",
                     isActive
-                      ? "bg-gradient-to-tr from-sky-600 to-cyan-500 shadow-sky-500/40 ring-2 ring-sky-400/50"
-                      : "bg-gradient-to-tr from-sky-500 to-cyan-400 shadow-sky-500/30"
+                      ? "bg-gradient-to-tr from-sky-600 to-cyan-500 shadow-sky-500/40 ring-sky-100"
+                      : "bg-gradient-to-tr from-sky-500 to-cyan-500 shadow-sky-500/30"
                   )}
                 >
-                  <Icon className="w-6 h-6 stroke-[2.2]" />
+                  <Icon className="w-5 h-5 stroke-[2.2]" />
                 </div>
                 <span
                   className={cn(
-                    "text-[10px] mt-0.5 leading-none tracking-tight",
+                    "text-[10px] mt-1 leading-none tracking-tight transition-colors",
                     isActive
                       ? "text-sky-600 font-bold"
-                      : "text-slate-600 font-medium"
+                      : "text-slate-600 font-semibold"
                   )}
                 >
                   {item.label}
@@ -81,19 +80,28 @@ export function BottomNav() {
               key={item.href}
               href={item.href}
               className={cn(
-                "flex flex-col items-center justify-center py-1 transition-colors min-touch-target",
+                "flex flex-col items-center justify-center py-1 transition-all group min-touch-target",
                 isActive
                   ? "text-sky-600 font-bold"
-                  : "text-slate-500 hover:text-slate-800 font-medium"
+                  : "text-slate-400 hover:text-slate-700 font-medium"
               )}
             >
-              <Icon
+              <div className="relative flex items-center justify-center h-6">
+                <Icon
+                  className={cn(
+                    "w-5 h-5 transition-transform duration-150",
+                    isActive
+                      ? "scale-110 text-sky-600 stroke-[2.3]"
+                      : "stroke-[1.8] group-hover:scale-105"
+                  )}
+                />
+              </div>
+              <span
                 className={cn(
-                  "w-5 h-5 transition-transform",
-                  isActive && "scale-110 text-sky-600"
+                  "text-[10px] mt-1 leading-none tracking-tight transition-colors",
+                  isActive ? "text-sky-600 font-bold" : "text-slate-500"
                 )}
-              />
-              <span className="text-[10px] mt-1 leading-none tracking-tight">
+              >
                 {item.label}
               </span>
             </Link>
@@ -108,7 +116,7 @@ export function AppHeader() {
   const pathname = usePathname();
 
   return (
-    <header className="sticky top-0 z-30 bg-white/90 backdrop-blur-md border-b border-slate-200">
+    <header className="sticky top-0 z-30 bg-white border-b border-slate-200">
       <div className="max-w-5xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
         <Link href="/" className="flex items-center gap-2.5 group">
           <img
@@ -179,7 +187,7 @@ export function AppHeader() {
             href="/scan"
             className="ml-2 inline-flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-sky-600 to-cyan-600 hover:from-sky-700 hover:to-cyan-700 active:scale-95 text-white text-sm font-semibold rounded-xl shadow-sm transition"
           >
-            <ScanLine className="w-4 h-4" />
+            <Camera className="w-4 h-4" />
             Scan Struk AI
           </Link>
         </nav>
