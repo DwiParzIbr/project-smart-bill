@@ -24,7 +24,7 @@ export function BottomNav() {
   const navItems = [
     { href: "/", label: "Home", icon: Home },
     { href: "/create", label: "Buat Bill", icon: PlusCircle },
-    { href: "/scan", label: "Scan", icon: ScanLine },
+    { href: "/scan", label: "Scan", icon: ScanLine, isElevated: true },
     { href: "/history", label: "Riwayat", icon: History },
     { href: "/profile", label: "Saya", icon: User },
   ];
@@ -32,12 +32,52 @@ export function BottomNav() {
   return (
     <nav
       aria-label="Navigasi Bawah Utama"
-      className="fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-slate-200 shadow-[0_-2px_10px_rgba(0,0,0,0.03)] sm:hidden"
+      className="fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-slate-200/90 shadow-[0_-2px_10px_rgba(0,0,0,0.03)] sm:hidden"
+      style={{
+        paddingBottom: "env(safe-area-inset-bottom, 0px)",
+      }}
     >
-      <div className="grid grid-cols-5 items-center h-14 max-w-md mx-auto px-1">
+      <div className="grid grid-cols-5 items-center h-14 max-w-md mx-auto px-1 relative">
         {navItems.map((item) => {
           const Icon = item.icon;
           const isActive = pathname === item.href;
+
+          if (item.isElevated) {
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                className="relative flex flex-col items-center justify-center h-full py-1 group min-touch-target"
+                aria-label="Scan Struk"
+              >
+                {/* Tombol Bulat Menonjol (Elevated Circle) */}
+                <div className="absolute -top-4 flex items-center justify-center">
+                  <div
+                    className={cn(
+                      "w-12 h-12 rounded-full flex items-center justify-center text-white transition-all duration-150 shadow-md active:scale-95 group-hover:scale-105 border-[3.5px] border-white",
+                      isActive
+                        ? "bg-gradient-to-tr from-sky-600 to-cyan-500 shadow-sky-500/40 ring-2 ring-sky-400/40"
+                        : "bg-gradient-to-tr from-sky-500 to-cyan-400 shadow-sky-500/30"
+                    )}
+                  >
+                    <Icon className="w-5 h-5 stroke-[2.2]" />
+                  </div>
+                </div>
+                {/* Spacer h-5 agar posisi teks sejajar sempurna dengan item lainnya */}
+                <div className="h-5" />
+                <span
+                  className={cn(
+                    "text-[10px] mt-1 leading-none tracking-tight transition-colors",
+                    isActive
+                      ? "text-sky-600 font-bold"
+                      : "text-slate-600 font-medium"
+                  )}
+                >
+                  {item.label}
+                </span>
+              </Link>
+            );
+          }
 
           return (
             <Link
