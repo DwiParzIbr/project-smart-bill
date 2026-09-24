@@ -74,6 +74,16 @@ export interface DebtSettlement {
   amount: number;
 }
 
+export interface CorporateReimbursementProfile {
+  companyName: string;
+  employeeName: string;
+  employeeId?: string;
+  department?: string;
+  expenseCategory?: string;
+  claimNumber?: string;
+  notes?: string;
+}
+
 export interface BillData {
   id: string;
   title: string;
@@ -84,6 +94,8 @@ export interface BillData {
   charges: BillCharges;
   status: "draft" | "calculated" | "completed";
   payers?: BillPayer[];
+  receiptImageUrl?: string;
+  reimbursementProfile?: CorporateReimbursementProfile;
   createdAt: string;
   updatedAt: string;
 }

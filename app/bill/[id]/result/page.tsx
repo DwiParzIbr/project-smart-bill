@@ -23,6 +23,7 @@ import { QRISPreviewModal } from "@/components/bill/qris-preview-modal";
 import { PersonalShareModal } from "@/components/bill/personal-share-modal";
 import { DebtSimplificationCard } from "@/components/bill/debt-simplification-card";
 import { ReceiptCardModal } from "@/components/bill/receipt-card-modal";
+import { CorporateReimbursementModal } from "@/components/bill/corporate-reimbursement-modal";
 import { ConfirmDialog } from "@/components/ui/modal";
 import confetti from "canvas-confetti";
 import {
@@ -43,6 +44,8 @@ import {
   Filter,
   Users,
   Repeat,
+  Briefcase,
+  FileSpreadsheet,
 } from "lucide-react";
 
 export default function BillResultPage() {
@@ -65,6 +68,7 @@ export default function BillResultPage() {
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [showQrisModal, setShowQrisModal] = useState(false);
   const [showReceiptCardModal, setShowReceiptCardModal] = useState(false);
+  const [showReimbursementModal, setShowReimbursementModal] = useState(false);
   const [sharingParticipant, setSharingParticipant] = useState<ParticipantCalculation | null>(null);
 
   useEffect(() => {
@@ -166,6 +170,14 @@ export default function BillResultPage() {
       setCopiedSummary(true);
       setTimeout(() => setCopiedSummary(false), 2500);
     }
+  };
+
+  const handleUpdateReceiptImage = (imageUrl: string) => {
+    if (!record) return;
+    const updatedBill = { ...record.bill, receiptImageUrl: imageUrl };
+    const updatedRecord = { ...record, bill: updatedBill };
+    setRecord(updatedRecord);
+    saveCompletedBill(updatedBill, record.result);
   };
 
   if (loading) {
@@ -274,36 +286,44 @@ export default function BillResultPage() {
           </div>
         </div>
 
-        {/* Action Buttons: Share, Aesthetic Card & Copy */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+        {/* Action Buttons: Share, Aesthetic Card, Reimburse & Copy */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
           <button
             onClick={handleShare}
-            className="py-3 px-4 bg-sky-600 hover:bg-sky-700 active:scale-98 text-white font-bold rounded-2xl shadow-md transition flex items-center justify-center gap-2 text-sm min-touch-target"
+            className="py-3 px-3 bg-sky-600 hover:bg-sky-700 active:scale-98 text-white font-bold rounded-2xl shadow-md transition flex items-center justify-center gap-2 text-xs sm:text-sm min-touch-target"
           >
-            <Share2 className="w-4 h-4" />
+            <Share2 className="w-4 h-4 shrink-0" />
             <span>Bagikan Semua</span>
           </button>
 
           <button
             onClick={() => setShowReceiptCardModal(true)}
-            className="py-3 px-4 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 active:scale-98 text-white font-bold rounded-2xl shadow-md shadow-indigo-600/20 transition flex items-center justify-center gap-2 text-sm min-touch-target"
+            className="py-3 px-3 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 active:scale-98 text-white font-bold rounded-2xl shadow-md shadow-indigo-600/20 transition flex items-center justify-center gap-2 text-xs sm:text-sm min-touch-target"
           >
-            <Receipt className="w-4 h-4" />
+            <Receipt className="w-4 h-4 shrink-0" />
             <span>Struk Estetik</span>
           </button>
 
           <button
+            onClick={() => setShowReimbursementModal(true)}
+            className="py-3 px-3 bg-emerald-600 hover:bg-emerald-700 active:scale-98 text-white font-bold rounded-2xl shadow-md shadow-emerald-600/20 transition flex items-center justify-center gap-2 text-xs sm:text-sm min-touch-target"
+          >
+            <Briefcase className="w-4 h-4 shrink-0" />
+            <span>Klaim Reimburse</span>
+          </button>
+
+          <button
             onClick={handleCopySummaryText}
-            className="py-3 px-4 bg-white border border-slate-200 hover:bg-slate-50 active:scale-98 text-slate-800 font-bold rounded-2xl shadow-xs transition flex items-center justify-center gap-2 text-sm min-touch-target"
+            className="py-3 px-3 bg-white border border-slate-200 hover:bg-slate-50 active:scale-98 text-slate-800 font-bold rounded-2xl shadow-xs transition flex items-center justify-center gap-2 text-xs sm:text-sm min-touch-target"
           >
             {copiedSummary ? (
               <>
-                <Check className="w-4 h-4 text-emerald-600" />
+                <Check className="w-4 h-4 text-emerald-600 shrink-0" />
                 <span className="text-emerald-700">Tersalin!</span>
               </>
             ) : (
               <>
-                <Copy className="w-4 h-4 text-slate-500" />
+                <Copy className="w-4 h-4 text-slate-500 shrink-0" />
                 <span>Salin Teks WA</span>
               </>
             )}
@@ -694,6 +714,15 @@ export default function BillResultPage() {
         onClose={() => setShowReceiptCardModal(false)}
         bill={bill}
         result={result}
+      />
+
+      {/* Feature 4: Corporate Reimbursement Modal */}
+      <CorporateReimbursementModal
+        isOpen={showReimbursementModal}
+        onClose={() => setShowReimbursementModal(false)}
+        bill={bill}
+        result={result}
+        onUpdateReceiptImage={handleUpdateReceiptImage}
       />
     </div>
   );

@@ -157,6 +157,10 @@ export default function ScanReceiptPage() {
       draft.charges.discountValue = confirmed.discount;
     }
 
+    if (selectedImage) {
+      draft.receiptImageUrl = selectedImage;
+    }
+
     await saveDraft(draft);
     router.push("/create");
   };
