@@ -10,6 +10,7 @@ import {
   Maximize2,
   Sparkles,
   Sliders,
+  Loader2,
 } from "lucide-react";
 
 interface ImageCropModalProps {
@@ -32,42 +33,69 @@ export function ImageCropModal({
   const [marginLeft, setMarginLeft] = useState(0);
   const [marginRight, setMarginRight] = useState(0);
 
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [imageSrc, setImageSrc] = useState<string | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const imgRef = useRef<HTMLImageElement | null>(null);
 
-  // Load image whenever file changes
+  // Load image whenever file or isOpen changes
   useEffect(() => {
-    if (!file) {
+    if (!isOpen || !file) {
       setImageSrc(null);
+      imgRef.current = null;
+      setIsLoading(false);
+      setLoadError(null);
       return;
     }
-    const url = URL.createObjectURL(file);
-    setImageSrc(url);
+
+    setIsLoading(true);
+    setLoadError(null);
     setRotation(0);
     setMarginTop(0);
     setMarginBottom(0);
     setMarginLeft(0);
     setMarginRight(0);
 
-    const img = new Image();
-    img.onload = () => {
-      imgRef.current = img;
-      renderCanvas();
-    };
-    img.src = url;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const src = e.target?.result as string;
+      if (!src) {
+        setIsLoading(false);
+        setLoadError("Gagal membaca file gambar dari galeri.");
+        return;
+      }
+      setImageSrc(src);
 
-    return () => {
-      URL.revokeObjectURL(url);
+      const img = new Image();
+      img.onload = () => {
+        imgRef.current = img;
+        setIsLoading(false);
+        requestAnimationFrame(() => {
+          renderCanvas();
+        });
+      };
+      img.onerror = () => {
+        setIsLoading(false);
+        setLoadError("Format foto tidak didukung atau file gambar rusak.");
+      };
+      img.src = src;
     };
-  }, [file]);
 
-  // Re-render canvas whenever rotation or crop margins change
+    reader.onerror = () => {
+      setIsLoading(false);
+      setLoadError("Gagal membuka file foto.");
+    };
+
+    reader.readAsDataURL(file);
+  }, [file, isOpen]);
+
+  // Re-render canvas whenever rotation, margins, or modal open state change
   useEffect(() => {
-    if (imgRef.current) {
+    if (isOpen && imgRef.current && canvasRef.current) {
       renderCanvas();
     }
-  }, [rotation, marginTop, marginBottom, marginLeft, marginRight]);
+  }, [isOpen, rotation, marginTop, marginBottom, marginLeft, marginRight]);
 
   const renderCanvas = () => {
     const canvas = canvasRef.current;
@@ -78,8 +106,12 @@ export function ImageCropModal({
     if (!ctx) return;
 
     const isRotated90or270 = rotation === 90 || rotation === 270;
-    const origW = isRotated90or270 ? img.height : img.width;
-    const origH = isRotated90or270 ? img.width : img.height;
+    const imgW = img.naturalWidth || img.width;
+    const imgH = img.naturalHeight || img.height;
+    if (!imgW || !imgH) return;
+
+    const origW = isRotated90or270 ? imgH : imgW;
+    const origH = isRotated90or270 ? imgW : imgH;
 
     // Set preview canvas resolution (scaled down for mobile performance)
     const maxPreviewDim = 600;
@@ -234,7 +266,7 @@ export function ImageCropModal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-xs p-4 animate-in fade-in duration-200"
+      className="fixed inset-0 z-[70] flex items-center justify-center bg-slate-950/80 backdrop-blur-xs p-4 animate-in fade-in duration-200"
       role="dialog"
       aria-modal="true"
     >
@@ -264,11 +296,29 @@ export function ImageCropModal({
         </div>
 
         {/* Canvas Preview Area */}
-        <div className="relative bg-slate-900/95 rounded-2xl overflow-hidden flex items-center justify-center p-2 min-h-60 max-h-72">
-          <canvas
-            ref={canvasRef}
-            className="max-h-64 max-w-full object-contain rounded-lg shadow-md"
-          />
+        <div className="relative bg-slate-900 rounded-2xl overflow-hidden flex items-center justify-center p-2 min-h-60 max-h-72">
+          {isLoading ? (
+            <div className="flex flex-col items-center justify-center gap-2.5 text-slate-300 py-8">
+              <Loader2 className="w-8 h-8 animate-spin text-sky-400" />
+              <span className="text-xs font-semibold">Memuat foto struk...</span>
+            </div>
+          ) : loadError ? (
+            <div className="flex flex-col items-center justify-center gap-2.5 p-4 text-center">
+              <p className="text-xs text-rose-400 font-semibold">{loadError}</p>
+              <button
+                type="button"
+                onClick={onClose}
+                className="px-3.5 py-2 bg-slate-800 text-slate-200 hover:text-white text-xs font-bold rounded-xl transition"
+              >
+                Pilih Foto Lain
+              </button>
+            </div>
+          ) : (
+            <canvas
+              ref={canvasRef}
+              className="max-h-64 max-w-full object-contain rounded-lg shadow-md"
+            />
+          )}
         </div>
 
         {/* Quick Rotation & Crop Presets */}

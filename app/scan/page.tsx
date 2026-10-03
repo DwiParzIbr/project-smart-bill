@@ -75,6 +75,7 @@ export default function ScanReceiptPage() {
 
   const handleCropConfirm = (croppedFile: File) => {
     setShowCropModal(false);
+    setRawFileToCrop(null);
     setSelectedFile(croppedFile);
     const url = URL.createObjectURL(croppedFile);
     setSelectedImage(url);
@@ -194,7 +195,7 @@ export default function ScanReceiptPage() {
         {/* Modal Pengaturan API Key */}
         {showKeyModal && (
           <div
-            className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4 animate-in fade-in duration-200"
+            className="fixed inset-0 z-[70] flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4 animate-in fade-in duration-200"
             role="dialog"
             aria-modal="true"
             onClick={(e) => {
@@ -514,7 +515,10 @@ export default function ScanReceiptPage() {
       {/* Image Crop & Rotate Modal */}
       <ImageCropModal
         isOpen={showCropModal}
-        onClose={() => setShowCropModal(false)}
+        onClose={() => {
+          setShowCropModal(false);
+          setRawFileToCrop(null);
+        }}
         file={rawFileToCrop}
         onConfirm={handleCropConfirm}
       />

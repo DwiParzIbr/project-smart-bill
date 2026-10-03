@@ -99,7 +99,7 @@ export function ReceiptCardModal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-xs p-4 animate-in fade-in duration-200 overflow-y-auto"
+      className="fixed inset-0 z-[70] flex items-center justify-center bg-slate-950/80 backdrop-blur-xs p-4 animate-in fade-in duration-200 overflow-y-auto"
       role="dialog"
       aria-modal="true"
     >

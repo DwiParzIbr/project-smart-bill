@@ -119,14 +119,14 @@ export function AssignmentSheet({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-xs p-0 sm:p-4 animate-in fade-in">
+    <div className="fixed inset-0 z-[70] flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-xs p-0 sm:p-4 animate-in fade-in">
       <div
-        className="w-full sm:max-w-lg bg-white rounded-t-3xl sm:rounded-3xl shadow-2xl flex flex-col max-h-[85vh] overflow-hidden"
+        className="w-full sm:max-w-lg bg-white rounded-t-3xl sm:rounded-3xl shadow-2xl flex flex-col max-h-[88dvh] sm:max-h-[85vh] overflow-hidden"
         role="dialog"
         aria-modal="true"
       >
         {/* Header */}
-        <div className="p-4 border-b border-slate-100 flex items-center justify-between">
+        <div className="p-4 border-b border-slate-100 flex items-center justify-between shrink-0">
           <div>
             <h3 className="text-base font-bold text-slate-900">{item.name}</h3>
             <p className="text-xs text-slate-500">
@@ -146,7 +146,7 @@ export function AssignmentSheet({
         </div>
 
         {/* Mode Selector Tabs */}
-        <div className="grid grid-cols-3 p-1.5 mx-4 mt-3 bg-slate-100 rounded-xl gap-1">
+        <div className="grid grid-cols-3 p-1.5 mx-4 mt-3 bg-slate-100 rounded-xl gap-1 shrink-0">
           <button
             type="button"
             onClick={() => setShareType("equal")}
@@ -186,7 +186,7 @@ export function AssignmentSheet({
         </div>
 
         {/* Quick select buttons */}
-        <div className="flex items-center justify-between px-4 pt-3 text-xs">
+        <div className="flex items-center justify-between px-4 pt-3 text-xs shrink-0">
           <span className="font-medium text-slate-600">Siapa yang memesan?</span>
           <div className="flex items-center gap-2">
             <button
@@ -208,7 +208,7 @@ export function AssignmentSheet({
         </div>
 
         {/* Participant list with mode inputs */}
-        <div className="p-4 overflow-y-auto space-y-2.5 flex-1">
+        <div className="p-4 overflow-y-auto space-y-2.5 flex-1 min-h-0">
           {participants.map((participant) => {
             const isSelected = selectedParticipants.includes(participant.id);
 
@@ -303,7 +303,7 @@ export function AssignmentSheet({
 
         {/* Validation info for percentage / fixed */}
         {shareType === "percentage" && (
-          <div className="px-4 py-2 bg-slate-50 border-t border-slate-100 flex items-center justify-between text-xs">
+          <div className="px-4 py-2 bg-slate-50 border-t border-slate-100 flex items-center justify-between text-xs shrink-0">
             <span className="text-slate-600">Total Persentase:</span>
             <span
               className={`font-bold ${
@@ -316,7 +316,7 @@ export function AssignmentSheet({
         )}
 
         {shareType === "fixed" && (
-          <div className="px-4 py-2 bg-slate-50 border-t border-slate-100 flex items-center justify-between text-xs">
+          <div className="px-4 py-2 bg-slate-50 border-t border-slate-100 flex items-center justify-between text-xs shrink-0">
             <span className="text-slate-600">Total Nominal:</span>
             <span
               className={`font-bold ${
@@ -332,7 +332,7 @@ export function AssignmentSheet({
         )}
 
         {/* Footer actions */}
-        <div className="p-4 border-t border-slate-100 flex items-center gap-2.5 pb-safe">
+        <div className="p-4 border-t border-slate-100 flex items-center gap-2.5 bg-white shrink-0 pb-safe">
           <button
             type="button"
             onClick={onClose}

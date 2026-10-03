@@ -387,7 +387,7 @@ export default function ProfilePage() {
       {/* Modal Edit Profil Kantor */}
       {showCorporateModal && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-3 sm:p-4 overflow-y-auto"
+          className="fixed inset-0 z-[70] flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-3 sm:p-4 overflow-y-auto"
           role="dialog"
           aria-modal="true"
         >

@@ -153,7 +153,7 @@ export function CorporateReimbursementModal({
       {/* 1. Modal Dialog UI (Khusus Tampilan Layar / Screen Only - Hidden on Print) */}
       {/* ========================================================================= */}
       <div
-        className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-3 sm:p-4 overflow-y-auto animate-in fade-in duration-200 print:hidden"
+        className="fixed inset-0 z-[70] flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-3 sm:p-4 overflow-y-auto animate-in fade-in duration-200 print:hidden"
         role="dialog"
         aria-modal="true"
         onClick={(e) => {

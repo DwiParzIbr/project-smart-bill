@@ -231,7 +231,7 @@ export function DebtSimplificationCard({
       {/* Edit Payers Modal */}
       {showEditModal && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4 animate-in fade-in duration-200"
+          className="fixed inset-0 z-[70] flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4 animate-in fade-in duration-200"
           role="dialog"
           aria-modal="true"
         >
