@@ -23,7 +23,7 @@ export function Stepper({ currentStep, steps, onSelectStep }: StepperProps) {
             {steps[currentStep - 1]?.title}
           </span>
         </div>
-        <div className="grid grid-cols-6 gap-1.5">
+        <div className="flex gap-1.5">
           {steps.map((step) => {
             const isCompleted = step.id < currentStep;
             const isCurrent = step.id === currentStep;
@@ -33,7 +33,7 @@ export function Stepper({ currentStep, steps, onSelectStep }: StepperProps) {
                 key={step.id}
                 type="button"
                 onClick={() => onSelectStep && onSelectStep(step.id)}
-                className="group py-1 focus:outline-none"
+                className="flex-1 group py-1 focus:outline-none"
                 aria-label={`Ke langkah ${step.id}: ${step.title}`}
               >
                 <div

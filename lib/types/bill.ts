@@ -93,6 +93,7 @@ export interface BillData {
   items: BillItem[];
   charges: BillCharges;
   status: "draft" | "calculated" | "completed";
+  source?: "scan" | "manual";
   payers?: BillPayer[];
   receiptImageUrl?: string;
   reimbursementProfile?: CorporateReimbursementProfile;

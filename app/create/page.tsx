@@ -22,13 +22,29 @@ import { calculateBill } from "@/lib/calculation/engine";
 import { RotateCcw, ArrowLeft } from "lucide-react";
 import { ConfirmDialog, AlertDialog } from "@/components/ui/modal";
 
-const STEPS = [
-  { id: 1, title: "Informasi", shortTitle: "Info" },
-  { id: 2, title: "Peserta", shortTitle: "Peserta" },
-  { id: 3, title: "Menu", shortTitle: "Menu" },
-  { id: 4, title: "Pemesan", shortTitle: "Bagi" },
-  { id: 5, title: "Pajak & Biaya", shortTitle: "Biaya" },
-  { id: 6, title: "Review", shortTitle: "Review" },
+type StepKey = "info" | "participants" | "items" | "assignments" | "charges" | "review";
+
+interface StepConfig {
+  key: StepKey;
+  title: string;
+  shortTitle: string;
+}
+
+const ALL_MANUAL_STEPS: StepConfig[] = [
+  { key: "info", title: "Informasi", shortTitle: "Info" },
+  { key: "participants", title: "Peserta", shortTitle: "Peserta" },
+  { key: "items", title: "Menu", shortTitle: "Menu" },
+  { key: "assignments", title: "Pemesan", shortTitle: "Bagi" },
+  { key: "charges", title: "Pajak & Biaya", shortTitle: "Biaya" },
+  { key: "review", title: "Review", shortTitle: "Review" },
+];
+
+const SCAN_STEPS: StepConfig[] = [
+  { key: "info", title: "Informasi", shortTitle: "Info" },
+  { key: "participants", title: "Peserta", shortTitle: "Peserta" },
+  { key: "assignments", title: "Pemesan", shortTitle: "Bagi" },
+  { key: "charges", title: "Pajak & Biaya", shortTitle: "Biaya" },
+  { key: "review", title: "Review", shortTitle: "Review" },
 ];
 
 export default function CreateBillPage() {
@@ -66,6 +82,30 @@ export default function CreateBillPage() {
     }
   }, [bill, isLoaded]);
 
+  // Determine if bill is from scan or manual input
+  const isFromScan = bill.source === "scan" || Boolean(bill.receiptImageUrl);
+
+  // Dynamic steps: 5 steps for scan (Step 3 Menu is skipped), 6 steps for manual input
+  const steps = useMemo(() => {
+    const rawConfigs = isFromScan ? SCAN_STEPS : ALL_MANUAL_STEPS;
+    return rawConfigs.map((s, idx) => ({
+      id: idx + 1,
+      key: s.key,
+      title: s.title,
+      shortTitle: s.shortTitle,
+    }));
+  }, [isFromScan]);
+
+  // Ensure currentStep is within valid bounds if step list changes
+  useEffect(() => {
+    if (currentStep > steps.length) {
+      setCurrentStep(steps.length);
+    }
+  }, [currentStep, steps.length]);
+
+  const activeStep = steps[currentStep - 1] || steps[0];
+  const activeStepKey = activeStep.key;
+
   // Live estimated total for sticky bar
   const estimatedTotal = useMemo(() => {
     const calc = calculateBill(bill.participants, bill.items, bill.charges);
@@ -73,7 +113,7 @@ export default function CreateBillPage() {
   }, [bill]);
 
   const handleNext = async () => {
-    if (currentStep === 1 && !bill.title.trim()) {
+    if (activeStepKey === "info" && !bill.title.trim()) {
       setAlertConfig({
         isOpen: true,
         title: "Nama Tagihan Diperlukan",
@@ -82,7 +122,7 @@ export default function CreateBillPage() {
       });
       return;
     }
-    if (currentStep === 2 && bill.participants.length === 0) {
+    if (activeStepKey === "participants" && bill.participants.length === 0) {
       setAlertConfig({
         isOpen: true,
         title: "Peserta Masih Kosong",
@@ -91,7 +131,7 @@ export default function CreateBillPage() {
       });
       return;
     }
-    if (currentStep === 3 && bill.items.length === 0) {
+    if (activeStepKey === "items" && bill.items.length === 0) {
       setAlertConfig({
         isOpen: true,
         title: "Menu Belum Ditambahkan",
@@ -101,11 +141,11 @@ export default function CreateBillPage() {
       return;
     }
 
-    if (currentStep < STEPS.length) {
+    if (currentStep < steps.length) {
       setCurrentStep(currentStep + 1);
       window.scrollTo({ top: 0, behavior: "smooth" });
     } else {
-      // Step 6 completed: finalize bill
+      // Final step completed: finalize bill
       const finalResult = calculateBill(
         bill.participants,
         bill.items,
@@ -153,7 +193,7 @@ export default function CreateBillPage() {
       {/* Stepper Progress Bar */}
       <Stepper
         currentStep={currentStep}
-        steps={STEPS}
+        steps={steps}
         onSelectStep={(step) => {
           if (step <= currentStep || bill.items.length > 0) {
             setCurrentStep(step);
@@ -185,14 +225,14 @@ export default function CreateBillPage() {
         </div>
 
         {/* Dynamic Step View */}
-        {currentStep === 1 && (
+        {activeStepKey === "info" && (
           <StepInfo
             bill={bill}
             onChange={(patch) => setBill((prev) => ({ ...prev, ...patch }))}
           />
         )}
 
-        {currentStep === 2 && (
+        {activeStepKey === "participants" && (
           <StepParticipants
             participants={bill.participants}
             onChange={(participants) =>
@@ -201,7 +241,7 @@ export default function CreateBillPage() {
           />
         )}
 
-        {currentStep === 3 && (
+        {activeStepKey === "items" && (
           <StepItems
             items={bill.items}
             currency={bill.currency}
@@ -209,7 +249,7 @@ export default function CreateBillPage() {
           />
         )}
 
-        {currentStep === 4 && (
+        {activeStepKey === "assignments" && (
           <StepAssignments
             items={bill.items}
             participants={bill.participants}
@@ -218,7 +258,7 @@ export default function CreateBillPage() {
           />
         )}
 
-        {currentStep === 5 && (
+        {activeStepKey === "charges" && (
           <StepCharges
             charges={bill.charges}
             currency={bill.currency}
@@ -226,7 +266,7 @@ export default function CreateBillPage() {
           />
         )}
 
-        {currentStep === 6 && <StepReview bill={bill} />}
+        {activeStepKey === "review" && <StepReview bill={bill} />}
       </main>
 
       {/* Sticky Bottom Bar */}
@@ -235,7 +275,7 @@ export default function CreateBillPage() {
         participantCount={bill.participants.length}
         estimatedTotal={estimatedTotal}
         currentStep={currentStep}
-        totalSteps={STEPS.length}
+        totalSteps={steps.length}
         onNext={handleNext}
         onBack={handleBack}
       />

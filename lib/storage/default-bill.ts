@@ -23,6 +23,7 @@ export function createDefaultBill(): BillData {
       roundingMode: "nearest",
     },
     status: "draft",
+    source: "manual",
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   };

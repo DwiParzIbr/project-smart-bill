@@ -124,6 +124,7 @@ export default function ScanReceiptPage() {
 
   const handleConfirmReceipt = async (confirmed: ParsedReceiptData) => {
     const draft: BillData = createDefaultBill();
+    draft.source = "scan";
     draft.title = confirmed.storeName || "Struk Restoran";
 
     const convertedItems: BillItem[] = confirmed.items.map((it, idx) => ({

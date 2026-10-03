@@ -1,4 +1,4 @@
-const CACHE_NAME = "smart-bill-v8";
+const CACHE_NAME = "smart-bill-v9";
 const STATIC_ASSETS = [
   "/",
   "/manifest.webmanifest",

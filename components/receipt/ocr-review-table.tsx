@@ -307,7 +307,7 @@ export function OCRReviewTable({
           onClick={() => onConfirm({ ...data, total: expectedTotal })}
           className="flex-1 py-3 bg-sky-600 hover:bg-sky-700 active:scale-98 text-white font-bold rounded-2xl shadow-md transition flex items-center justify-center gap-2 min-touch-target"
         >
-          <span>Gunakan Data Ini</span>
+          <span>Gunakan Data</span>
           <ArrowRight className="w-4 h-4" />
         </button>
       </div>
