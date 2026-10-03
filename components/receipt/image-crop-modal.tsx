@@ -12,6 +12,7 @@ import {
   Sliders,
   Loader2,
 } from "lucide-react";
+import { convertHeicToJpegIfNeeded, isHeicFile } from "@/lib/ocr/heic-converter";
 
 interface ImageCropModalProps {
   isOpen: boolean;
@@ -39,7 +40,7 @@ export function ImageCropModal({
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const imgRef = useRef<HTMLImageElement | null>(null);
 
-  // Load image whenever file or isOpen changes
+  // Load image whenever file or isOpen changes (with automatic HEIC/HEIF conversion)
   useEffect(() => {
     if (!isOpen || !file) {
       setImageSrc(null);
@@ -49,45 +50,70 @@ export function ImageCropModal({
       return;
     }
 
-    setIsLoading(true);
-    setLoadError(null);
-    setRotation(0);
-    setMarginTop(0);
-    setMarginBottom(0);
-    setMarginLeft(0);
-    setMarginRight(0);
+    let isCancelled = false;
 
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const src = e.target?.result as string;
-      if (!src) {
-        setIsLoading(false);
-        setLoadError("Gagal membaca file gambar dari galeri.");
-        return;
+    const prepareAndLoad = async () => {
+      setIsLoading(true);
+      setLoadError(null);
+      setRotation(0);
+      setMarginTop(0);
+      setMarginBottom(0);
+      setMarginLeft(0);
+      setMarginRight(0);
+
+      let targetFile = file;
+      if (isHeicFile(file)) {
+        try {
+          targetFile = await convertHeicToJpegIfNeeded(file);
+        } catch (err) {
+          console.warn("Gagal konversi HEIC:", err);
+        }
       }
-      setImageSrc(src);
 
-      const img = new Image();
-      img.onload = () => {
-        imgRef.current = img;
-        setIsLoading(false);
-        requestAnimationFrame(() => {
-          renderCanvas();
-        });
+      if (isCancelled) return;
+
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        if (isCancelled) return;
+        const src = e.target?.result as string;
+        if (!src) {
+          setIsLoading(false);
+          setLoadError("Gagal membaca file gambar dari galeri.");
+          return;
+        }
+        setImageSrc(src);
+
+        const img = new Image();
+        img.onload = () => {
+          if (isCancelled) return;
+          imgRef.current = img;
+          setIsLoading(false);
+          requestAnimationFrame(() => {
+            renderCanvas();
+          });
+        };
+        img.onerror = () => {
+          if (isCancelled) return;
+          setIsLoading(false);
+          setLoadError("Format foto tidak didukung atau file gambar rusak.");
+        };
+        img.src = src;
       };
-      img.onerror = () => {
+
+      reader.onerror = () => {
+        if (isCancelled) return;
         setIsLoading(false);
-        setLoadError("Format foto tidak didukung atau file gambar rusak.");
+        setLoadError("Gagal membuka file foto.");
       };
-      img.src = src;
+
+      reader.readAsDataURL(targetFile);
     };
 
-    reader.onerror = () => {
-      setIsLoading(false);
-      setLoadError("Gagal membuka file foto.");
-    };
+    prepareAndLoad();
 
-    reader.readAsDataURL(file);
+    return () => {
+      isCancelled = true;
+    };
   }, [file, isOpen]);
 
   // Re-render canvas whenever rotation, margins, or modal open state change

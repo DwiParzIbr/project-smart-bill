@@ -1,4 +1,5 @@
 import { ParsedReceiptData, parseReceiptText } from "./receipt-parser";
+import { convertHeicToJpegIfNeeded } from "./heic-converter";
 
 /**
  * Preprocesses an image via HTML5 Canvas (grayscale & contrast enhancement)
@@ -236,6 +237,8 @@ export async function performReceiptOCR(
   onProgress?: (progressText: string) => void,
   preferredModel?: string | null
 ): Promise<ParsedReceiptData> {
+  const readyFile = await convertHeicToJpegIfNeeded(file, onProgress);
+
   // Option 1: AI Vision via Gemini API
   if (geminiKey) {
     if (onProgress) onProgress("Menganalisis struk dengan Google Gemini Vision...");
@@ -243,7 +246,7 @@ export async function performReceiptOCR(
     // Try server relay first
     try {
       const formData = new FormData();
-      formData.append("image", file);
+      formData.append("image", readyFile);
 
       const headers: Record<string, string> = {
         "x-gemini-key": geminiKey,
@@ -271,7 +274,7 @@ export async function performReceiptOCR(
     // Direct client-side Gemini Vision call (works directly from browser/phone internet)
     try {
       if (onProgress) onProgress("Menghubungkan langsung ke Google Gemini AI...");
-      const directResult = await callGeminiDirectly(file, geminiKey, preferredModel);
+      const directResult = await callGeminiDirectly(readyFile, geminiKey, preferredModel);
       if (directResult) {
         return directResult;
       }
@@ -284,7 +287,7 @@ export async function performReceiptOCR(
   if (onProgress) onProgress("Menyiapkan pemindai teks struk...");
 
   try {
-    const canvas = await preprocessImageToCanvas(file);
+    const canvas = await preprocessImageToCanvas(readyFile);
 
     if (onProgress) onProgress("Mempersiapkan mesin baca teks...");
 
