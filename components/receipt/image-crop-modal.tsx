@@ -61,15 +61,6 @@ export function ImageCropModal({
       setMarginLeft(0);
       setMarginRight(0);
 
-      let targetFile = file;
-      if (isHeicFile(file)) {
-        try {
-          targetFile = await convertHeicToJpegIfNeeded(file);
-        } catch (err) {
-          console.warn("Gagal konversi HEIC:", err);
-        }
-      }
-
       if (isCancelled) return;
 
       const reader = new FileReader();
@@ -92,8 +83,35 @@ export function ImageCropModal({
             renderCanvas();
           });
         };
-        img.onerror = () => {
+        img.onerror = async () => {
           if (isCancelled) return;
+          // Silent fallback only if browser cannot decode HEIC natively
+          if (isHeicFile(file)) {
+            try {
+              const converted = await convertHeicToJpegIfNeeded(file);
+              const fallbackReader = new FileReader();
+              fallbackReader.onload = (fbEvt) => {
+                if (isCancelled) return;
+                const fbSrc = fbEvt.target?.result as string;
+                if (!fbSrc) return;
+                setImageSrc(fbSrc);
+                const fbImg = new Image();
+                fbImg.onload = () => {
+                  if (isCancelled) return;
+                  imgRef.current = fbImg;
+                  setIsLoading(false);
+                  requestAnimationFrame(() => {
+                    renderCanvas();
+                  });
+                };
+                fbImg.src = fbSrc;
+              };
+              fallbackReader.readAsDataURL(converted);
+              return;
+            } catch {
+              // ignore
+            }
+          }
           setIsLoading(false);
           setLoadError("Format foto tidak didukung atau file gambar rusak.");
         };
@@ -106,7 +124,7 @@ export function ImageCropModal({
         setLoadError("Gagal membuka file foto.");
       };
 
-      reader.readAsDataURL(targetFile);
+      reader.readAsDataURL(file);
     };
 
     prepareAndLoad();

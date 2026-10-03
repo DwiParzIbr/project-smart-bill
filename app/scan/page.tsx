@@ -23,7 +23,6 @@ import { performReceiptOCR } from "@/lib/ocr/client-ocr";
 import { OCRReviewTable } from "@/components/receipt/ocr-review-table";
 import { ReceiptImageModal } from "@/components/receipt/receipt-image-modal";
 import { ImageCropModal } from "@/components/receipt/image-crop-modal";
-import { convertHeicToJpegIfNeeded, isHeicFile } from "@/lib/ocr/heic-converter";
 import { BillData, BillItem } from "@/lib/types/bill";
 import { createDefaultBill } from "@/lib/storage/default-bill";
 import { saveDraft } from "@/lib/storage/bill-storage";
@@ -64,22 +63,10 @@ export default function ScanReceiptPage() {
     setShowKeyModal(false);
   };
 
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      let targetFile = file;
-      if (isHeicFile(file)) {
-        setIsProcessing(true);
-        setProgressText("Mengonversi format HEIC/HEIF (Apple/Samsung) ke JPG...");
-        try {
-          targetFile = await convertHeicToJpegIfNeeded(file);
-        } catch (err) {
-          console.warn("Gagal konversi HEIC:", err);
-        } finally {
-          setIsProcessing(false);
-        }
-      }
-      setRawFileToCrop(targetFile);
+      setRawFileToCrop(file);
       setShowCropModal(true);
       // Reset input value so user can pick the same file again if desired
       e.target.value = "";
@@ -509,7 +496,7 @@ export default function ScanReceiptPage() {
                 Tips Foto Struk Jelas:
               </span>
               <ul className="list-disc list-inside space-y-1 text-slate-600 pl-1">
-                <li>Mendukung format JPG, PNG, WebP, dan HEIC/HEIF (kamera iPhone & Samsung).</li>
+                <li>Mendukung format JPG, PNG, WebP, dan HEIC/HEIF.</li>
                 <li>Pastikan cahaya cukup dan struk tidak terlipat.</li>
                 <li>Posisikan seluruh nama menu dan harga dalam frame.</li>
                 <li>Jika bukan struk (misal: foto orang/pemandangan), sistem akan otomatis menolak deteksi.</li>

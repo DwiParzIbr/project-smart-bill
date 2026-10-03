@@ -95,8 +95,8 @@ export default function HistoryPage() {
         <div className="flex gap-1.5 p-1 bg-slate-200/60 rounded-xl">
           {[
             { id: "all", label: "Semua" },
-            { id: "pending", label: "Ada yg Belum Bayar" },
-            { id: "completed", label: "Semua Lunas" },
+            { id: "pending", label: "Belum Bayar" },
+            { id: "completed", label: "Lunas" },
           ].map((tab) => (
             <button
               key={tab.id}
@@ -158,7 +158,7 @@ export default function HistoryPage() {
                       {allPaid ? (
                         <span className="inline-flex items-center gap-1 px-2.5 py-0.5 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-full text-[10px] font-bold shrink-0">
                           <CheckCircle2 className="w-3 h-3" />
-                          <span>Lunas Penuh</span>
+                          <span>Lunas</span>
                         </span>
                       ) : paidCount > 0 ? (
                         <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-amber-50 text-amber-700 border border-amber-200 rounded-full text-[10px] font-bold shrink-0">

@@ -250,7 +250,7 @@ export default function BillResultPage() {
           {allPaid && (
             <div className="inline-flex items-center gap-1 px-2.5 py-1 bg-emerald-100 text-emerald-800 text-xs font-bold rounded-full">
               <PartyPopper className="w-3.5 h-3.5" />
-              <span>Semua Lunas!</span>
+              <span>Lunas!</span>
             </div>
           )}
         </div>

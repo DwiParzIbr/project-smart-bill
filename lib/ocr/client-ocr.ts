@@ -1,5 +1,4 @@
 import { ParsedReceiptData, parseReceiptText } from "./receipt-parser";
-import { convertHeicToJpegIfNeeded } from "./heic-converter";
 
 /**
  * Preprocesses an image via HTML5 Canvas (grayscale & contrast enhancement)
@@ -237,7 +236,7 @@ export async function performReceiptOCR(
   onProgress?: (progressText: string) => void,
   preferredModel?: string | null
 ): Promise<ParsedReceiptData> {
-  const readyFile = await convertHeicToJpegIfNeeded(file, onProgress);
+  const readyFile = file;
 
   // Option 1: AI Vision via Gemini API
   if (geminiKey) {
