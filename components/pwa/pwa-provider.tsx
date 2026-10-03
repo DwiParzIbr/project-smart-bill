@@ -27,14 +27,28 @@ export function PWAProvider({ children }: { children: React.ReactNode }) {
     // 1. Service Worker registration (production only to prevent dev HMR / asset caching loops on mobile)
     if (typeof window !== "undefined" && "serviceWorker" in navigator) {
       if (process.env.NODE_ENV === "production") {
-        window.addEventListener("load", () => {
+        const registerSW = () => {
           navigator.serviceWorker
             .register("/sw.js")
             .then((registration) => {
               registration.update();
             })
             .catch((err) => console.log("SW registration failed:", err));
+        };
+
+        let refreshing = false;
+        navigator.serviceWorker.addEventListener("controllerchange", () => {
+          if (!refreshing) {
+            refreshing = true;
+            window.location.reload();
+          }
         });
+
+        if (document.readyState === "complete") {
+          registerSW();
+        } else {
+          window.addEventListener("load", registerSW);
+        }
       } else {
         // In dev, ensure any old registered SW is removed so mobile doesn't stall
         navigator.serviceWorker.getRegistrations().then((registrations) => {
