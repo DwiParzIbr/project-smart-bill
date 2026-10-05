@@ -369,12 +369,6 @@ export default function AdminPage() {
                 </div>
               </div>
 
-              {/* Hint badge */}
-              <div className="pt-0.5 text-center">
-                <p className="text-[11px] text-slate-400">
-                  Akses bawaan sistem: <span className="font-mono text-slate-600 font-bold">admin / admin123</span>
-                </p>
-              </div>
 
               {/* Submit Button */}
               <button
