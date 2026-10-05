@@ -32,6 +32,15 @@ export default function HistoryPage() {
     const list = await getAllBills();
     setBills(list);
     setLoading(false);
+
+    // Sync any existing client bills to server in background so admin sees them
+    if (list.length > 0) {
+      fetch("/api/bills/sync", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ bills: list }),
+      }).catch(() => {});
+    }
   };
 
   useEffect(() => {

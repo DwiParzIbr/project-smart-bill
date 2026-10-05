@@ -15,9 +15,12 @@ import { cn } from "@/lib/utils";
 export function BottomNav() {
   const pathname = usePathname();
 
-  // Sembunyikan bottom navigation saat di halaman wizard create atau result page
-  // agar tidak menutupi tombol sticky actions di bagian bawah
-  if (pathname.startsWith("/create") || pathname.includes("/result")) {
+  // Sembunyikan bottom navigation saat di halaman wizard create, result page, atau admin portal
+  if (
+    pathname.startsWith("/create") ||
+    pathname.includes("/result") ||
+    pathname.startsWith("/admin")
+  ) {
     return null;
   }
 
@@ -118,6 +121,11 @@ export function BottomNav() {
 
 export function AppHeader() {
   const pathname = usePathname();
+
+  // Sembunyikan header umum saat di halaman portal admin
+  if (pathname.startsWith("/admin")) {
+    return null;
+  }
 
   return (
     <header className="sticky top-0 z-30 bg-white border-b border-slate-200">

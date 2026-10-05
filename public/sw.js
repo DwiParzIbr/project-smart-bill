@@ -1,4 +1,4 @@
-const CACHE_NAME = "smart-bill-v9";
+const CACHE_NAME = "smart-bill-v10";
 const STATIC_ASSETS = [
   "/",
   "/manifest.webmanifest",
@@ -29,8 +29,12 @@ self.addEventListener("activate", (event) => {
 self.addEventListener("fetch", (event) => {
   const url = new URL(event.request.url);
 
-  // Skip non-GET requests and external origins
-  if (event.request.method !== "GET" || url.origin !== self.location.origin) {
+  // Skip non-GET requests, external origins, and admin portal
+  if (
+    event.request.method !== "GET" ||
+    url.origin !== self.location.origin ||
+    url.pathname.startsWith("/admin")
+  ) {
     return;
   }
 

@@ -68,6 +68,22 @@ export interface StoredBillRecord {
   updatedAt: string;
 }
 
+export async function syncBillToServer(
+  bill: BillData,
+  result?: BillCalculationResult
+): Promise<void> {
+  if (typeof window === "undefined") return;
+  try {
+    await fetch("/api/bills/sync", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ bill, result }),
+    });
+  } catch {
+    // Fail silently in background if offline or network unreachable
+  }
+}
+
 export async function saveCompletedBill(
   bill: BillData,
   result: BillCalculationResult
@@ -78,6 +94,9 @@ export async function saveCompletedBill(
     result,
     updatedAt: new Date().toISOString(),
   };
+
+  // Sync to server in background so admin can see transaction across devices
+  syncBillToServer(bill, result);
 
   const db = await openDB();
   if (db) {
