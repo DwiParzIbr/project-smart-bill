@@ -7,7 +7,7 @@ import {
   deleteBill,
   StoredBillRecord,
 } from "@/lib/storage/bill-storage";
-import { formatCurrency } from "@/lib/utils";
+import { formatCurrency, formatDateIndonesian, getBillTimestamp } from "@/lib/utils";
 import {
   Receipt,
   Search,
@@ -17,6 +17,8 @@ import {
   CheckCircle2,
   Calendar,
   Plus,
+  ArrowUpDown,
+  ChevronDown,
 } from "lucide-react";
 import { ConfirmDialog } from "@/components/ui/modal";
 
@@ -25,6 +27,7 @@ export default function HistoryPage() {
   const [bills, setBills] = useState<StoredBillRecord[]>([]);
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState<"all" | "pending" | "completed">("all");
+  const [sortBy, setSortBy] = useState<"newest" | "oldest" | "highest" | "lowest">("newest");
   const [loading, setLoading] = useState(true);
   const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
 
@@ -60,19 +63,39 @@ export default function HistoryPage() {
     }
   };
 
-  const filteredBills = bills.filter((rec) => {
-    const matchesSearch = rec.bill.title
-      .toLowerCase()
-      .includes(search.toLowerCase());
+  const filteredBills = bills
+    .filter((rec) => {
+      const matchesSearch = rec.bill.title
+        .toLowerCase()
+        .includes(search.toLowerCase());
 
-    const allPaid = rec.result.participants.every(
-      (p) => p.paymentStatus === "paid"
-    );
+      const allPaid = rec.result.participants.every(
+        (p) => p.paymentStatus === "paid"
+      );
 
-    if (filter === "completed") return matchesSearch && allPaid;
-    if (filter === "pending") return matchesSearch && !allPaid;
-    return matchesSearch;
-  });
+      if (filter === "completed") return matchesSearch && allPaid;
+      if (filter === "pending") return matchesSearch && !allPaid;
+      return matchesSearch;
+    })
+    .sort((a, b) => {
+      if (sortBy === "newest") {
+        const diff = getBillTimestamp(b.bill, b.updatedAt) - getBillTimestamp(a.bill, a.updatedAt);
+        if (diff !== 0) return diff;
+        return new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime();
+      }
+      if (sortBy === "oldest") {
+        const diff = getBillTimestamp(a.bill, a.updatedAt) - getBillTimestamp(b.bill, b.updatedAt);
+        if (diff !== 0) return diff;
+        return new Date(a.updatedAt).getTime() - new Date(b.updatedAt).getTime();
+      }
+      if (sortBy === "highest") {
+        return (b.result?.finalGrandTotal || 0) - (a.result?.finalGrandTotal || 0);
+      }
+      if (sortBy === "lowest") {
+        return (a.result?.finalGrandTotal || 0) - (b.result?.finalGrandTotal || 0);
+      }
+      return 0;
+    });
 
   return (
     <div className="min-h-screen bg-slate-50 pb-28 pt-4">
@@ -86,18 +109,36 @@ export default function HistoryPage() {
           </p>
         </div>
 
-        {/* Search bar */}
-        <div className="relative">
-          <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
-            <Search className="w-4 h-4" />
+        {/* Search bar & Sort Controls */}
+        <div className="flex gap-2">
+          <div className="relative flex-1">
+            <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+              <Search className="w-4 h-4" />
+            </div>
+            <input
+              type="text"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Cari nama acara atau restoran..."
+              className="w-full pl-10 pr-4 py-3 bg-white border border-slate-200 rounded-2xl text-slate-900 text-sm font-medium focus:ring-2 focus:ring-sky-500 focus:outline-none min-touch-target shadow-2xs"
+            />
           </div>
-          <input
-            type="text"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Cari nama acara atau restoran..."
-            className="w-full pl-10 pr-4 py-3 bg-white border border-slate-200 rounded-2xl text-slate-900 text-sm font-medium focus:ring-2 focus:ring-sky-500 focus:outline-none min-touch-target shadow-2xs"
-          />
+
+          <div className="relative shrink-0">
+            <select
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value as any)}
+              className="appearance-none pl-8 pr-7 py-3 bg-white border border-slate-200 rounded-2xl text-xs font-bold text-slate-700 hover:text-slate-900 focus:ring-2 focus:ring-sky-500 focus:outline-none shadow-2xs cursor-pointer min-touch-target"
+              aria-label="Urutkan riwayat"
+            >
+              <option value="newest">Terbaru</option>
+              <option value="oldest">Terlama</option>
+              <option value="highest">Nominal Terbesar</option>
+              <option value="lowest">Nominal Terkecil</option>
+            </select>
+            <ArrowUpDown className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+            <ChevronDown className="w-3.5 h-3.5 text-slate-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+          </div>
         </div>
 
         {/* Filter pills */}
@@ -187,7 +228,7 @@ export default function HistoryPage() {
                     <div className="flex items-center gap-3 text-xs text-slate-500">
                       <span className="flex items-center gap-1">
                         <Calendar className="w-3.5 h-3.5" />
-                        {rec.bill.date}
+                        {formatDateIndonesian(rec.bill.date || rec.updatedAt)}
                       </span>
                       <span>•</span>
                       <span>{rec.result.participants.length} Orang</span>

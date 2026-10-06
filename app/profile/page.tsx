@@ -18,18 +18,34 @@ import {
   CheckCircle2,
   Briefcase,
   Share2,
+  CalendarDays,
+  FileSpreadsheet,
+  Copy,
+  Check,
+  TrendingUp,
+  Clock,
+  ArrowUpRight,
+  BarChart3,
+  Calendar,
 } from "lucide-react";
 import { getAllBills, StoredBillRecord, clearAllBills } from "@/lib/storage/bill-storage";
 import { HostPaymentProfile, CorporateReimbursementProfile } from "@/lib/types/bill";
 import { PaymentProfileModal } from "@/components/bill/payment-profile-modal";
 import { ConfirmDialog } from "@/components/ui/modal";
-import { formatCurrency } from "@/lib/utils";
+import { formatCurrency, formatDateIndonesian } from "@/lib/utils";
+import {
+  groupBillsByMonth,
+  MonthSummary,
+  exportMonthlyReportToExcel,
+  generateMonthlyReportText,
+} from "@/lib/reports/monthly-summary";
 
 const PAYMENT_PROFILE_STORAGE_KEY = "smart_bill_payment_profile";
 const CORPORATE_PROFILE_STORAGE_KEY = "smart_bill_corporate_profile";
 
 export default function ProfilePage() {
   const [bills, setBills] = useState<StoredBillRecord[]>([]);
+  const [selectedMonthKey, setSelectedMonthKey] = useState<string>("");
   const [paymentProfile, setPaymentProfile] = useState<HostPaymentProfile | null>(null);
   const [corporateProfile, setCorporateProfile] = useState<CorporateReimbursementProfile | null>(null);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
@@ -109,6 +125,38 @@ export default function ProfilePage() {
   const totalSpent = bills.reduce((acc, b) => acc + (b.result?.finalGrandTotal || 0), 0);
   const totalPeople = bills.reduce((acc, b) => acc + (b.bill?.participants?.length || 0), 0);
 
+  const monthlySummaries = React.useMemo(() => groupBillsByMonth(bills), [bills]);
+
+  useEffect(() => {
+    if (monthlySummaries.length > 0) {
+      if (!selectedMonthKey || !monthlySummaries.some((m) => m.monthKey === selectedMonthKey)) {
+        setSelectedMonthKey(monthlySummaries[0].monthKey);
+      }
+    } else {
+      setSelectedMonthKey("");
+    }
+  }, [monthlySummaries, selectedMonthKey]);
+
+  const activeMonthSummary = React.useMemo(() => {
+    return monthlySummaries.find((m) => m.monthKey === selectedMonthKey) || monthlySummaries[0] || null;
+  }, [monthlySummaries, selectedMonthKey]);
+
+  const handleExportMonthExcel = (summary: MonthSummary) => {
+    exportMonthlyReportToExcel(summary);
+    showNotice(`Rekap ${summary.monthLabel} berhasil diunduh!`);
+  };
+
+  const handleCopyMonthText = (summary: MonthSummary) => {
+    const text = generateMonthlyReportText(summary);
+    if (navigator?.clipboard) {
+      navigator.clipboard.writeText(text).then(() => {
+        showNotice(`Ringkasan ${summary.monthLabel} disalin ke clipboard!`);
+      });
+    } else {
+      showNotice("Gagal menyalin ringkasan.");
+    }
+  };
+
   const displayName =
     paymentProfile?.hostName ||
     corporateProfile?.employeeName ||
@@ -177,6 +225,176 @@ export default function ProfilePage() {
               </p>
             </div>
           </div>
+        </div>
+
+        {/* Section: Rekapan & Laporan Per Bulan */}
+        <div className="bg-white rounded-3xl p-5 border border-slate-200/80 shadow-xs space-y-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2.5">
+              <div className="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
+                <BarChart3 className="w-4 h-4" />
+              </div>
+              <div>
+                <h2 className="font-bold text-slate-900 text-sm">
+                  Rekapan & Laporan Per Bulan
+                </h2>
+                <p className="text-[11px] text-slate-500">
+                  Ringkasan pengeluaran & status pelunasan bulanan
+                </p>
+              </div>
+            </div>
+            {activeMonthSummary && (
+              <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 rounded-full">
+                {activeMonthSummary.monthLabel}
+              </span>
+            )}
+          </div>
+
+          {monthlySummaries.length === 0 ? (
+            <div className="p-6 bg-slate-50 rounded-2xl border border-dashed border-slate-200 text-center space-y-2">
+              <CalendarDays className="w-8 h-8 text-slate-300 mx-auto" />
+              <p className="text-xs font-semibold text-slate-700">
+                Belum ada data tagihan bulanan
+              </p>
+              <p className="text-[11px] text-slate-400 max-w-xs mx-auto">
+                Setelah Anda membuat dan menyimpan tagihan, ringkasan pengeluaran per bulan akan otomatis tercatat di sini.
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {/* Month Selector Pills */}
+              <div className="flex gap-1.5 overflow-x-auto pb-1 scrollbar-none -mx-1 px-1">
+                {monthlySummaries.map((m) => (
+                  <button
+                    key={m.monthKey}
+                    type="button"
+                    onClick={() => setSelectedMonthKey(m.monthKey)}
+                    className={`px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition min-touch-target ${
+                      selectedMonthKey === m.monthKey
+                        ? "bg-slate-900 text-white shadow-xs"
+                        : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                    }`}
+                  >
+                    {m.monthLabel} ({m.totalBills})
+                  </button>
+                ))}
+              </div>
+
+              {activeMonthSummary && (
+                <>
+                  {/* KPI Cards */}
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                    <div className="p-3 bg-slate-50 rounded-2xl border border-slate-100">
+                      <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">
+                        Total Pengeluaran
+                      </p>
+                      <p className="text-sm sm:text-base font-black text-slate-900 mt-1 truncate">
+                        {formatCurrency(activeMonthSummary.totalAmount, "IDR")}
+                      </p>
+                    </div>
+
+                    <div className="p-3 bg-slate-50 rounded-2xl border border-slate-100">
+                      <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">
+                        Jumlah Tagihan
+                      </p>
+                      <p className="text-sm sm:text-base font-black text-slate-900 mt-1">
+                        {activeMonthSummary.totalBills} sesi
+                      </p>
+                    </div>
+
+                    <div className="p-3 bg-slate-50 rounded-2xl border border-slate-100">
+                      <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">
+                        Pelunasan
+                      </p>
+                      <p className="text-sm sm:text-base font-black text-emerald-600 mt-1">
+                        {activeMonthSummary.paidBills} / {activeMonthSummary.totalBills}{" "}
+                        <span className="text-[10px] font-normal text-slate-500">Lunas</span>
+                      </p>
+                    </div>
+
+                    <div className="p-3 bg-slate-50 rounded-2xl border border-slate-100">
+                      <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">
+                        Rata-Rata / Sesi
+                      </p>
+                      <p className="text-sm sm:text-base font-black text-sky-700 mt-1 truncate">
+                        {formatCurrency(activeMonthSummary.averagePerBill, "IDR")}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Action Buttons: Export Excel & Copy WhatsApp */}
+                  <div className="flex gap-2 pt-1">
+                    <button
+                      type="button"
+                      onClick={() => handleExportMonthExcel(activeMonthSummary)}
+                      className="flex-1 py-2.5 px-3 bg-emerald-50 hover:bg-emerald-100 active:scale-98 text-emerald-700 border border-emerald-200 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 min-touch-target"
+                    >
+                      <FileSpreadsheet className="w-4 h-4 text-emerald-600" />
+                      <span>Unduh Excel ({activeMonthSummary.monthKey})</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => handleCopyMonthText(activeMonthSummary)}
+                      className="py-2.5 px-3 bg-slate-100 hover:bg-slate-200 active:scale-98 text-slate-700 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 min-touch-target"
+                      title="Salin Ringkasan Teks"
+                    >
+                      <Copy className="w-4 h-4 text-slate-500" />
+                      <span>Salin Ringkasan</span>
+                    </button>
+                  </div>
+
+                  {/* List of bills in the active month */}
+                  <div className="space-y-2 pt-2 border-t border-slate-100">
+                    <div className="flex items-center justify-between text-xs font-bold text-slate-600">
+                      <span>Daftar Tagihan {activeMonthSummary.monthLabel}</span>
+                      <Link href="/history" className="text-sky-600 hover:underline flex items-center gap-0.5 text-[11px]">
+                        <span>Buka Semua Riwayat</span>
+                        <ArrowUpRight className="w-3 h-3" />
+                      </Link>
+                    </div>
+
+                    <div className="space-y-1.5 max-h-60 overflow-y-auto pr-1">
+                      {activeMonthSummary.bills.map((b) => {
+                        const isPaid = b.result.participants.every((p) => p.paymentStatus === "paid");
+                        return (
+                          <Link
+                            key={b.id}
+                            href={`/bill/${b.id}/result`}
+                            className="p-3 bg-slate-50 hover:bg-slate-100 border border-slate-100 rounded-2xl flex items-center justify-between transition group"
+                          >
+                            <div className="min-w-0 pr-2">
+                              <p className="text-xs font-bold text-slate-900 truncate group-hover:text-sky-600 transition">
+                                {b.bill.title}
+                              </p>
+                              <p className="text-[10px] text-slate-400 mt-0.5">
+                                {formatDateIndonesian(b.bill.date || b.updatedAt)} • {b.bill.participants.length} orang
+                              </p>
+                            </div>
+
+                            <div className="text-right shrink-0">
+                              <p className="text-xs font-black text-slate-900">
+                                {formatCurrency(b.result.finalGrandTotal, b.bill.currency)}
+                              </p>
+                              <span
+                                className={`inline-block text-[9px] font-bold px-1.5 py-0.5 rounded ${
+                                  isPaid
+                                    ? "bg-emerald-100 text-emerald-700"
+                                    : "bg-amber-100 text-amber-700"
+                                }`}
+                              >
+                                {isPaid ? "Lunas" : "Belum Lunas"}
+                              </span>
+                            </div>
+                          </Link>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Section 1: Pengaturan Rekening & QRIS Penagih */}

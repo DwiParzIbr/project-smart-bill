@@ -1,4 +1,5 @@
 import { BillCalculationResult, BillData, HostPaymentProfile } from "../types/bill";
+import { getBillTimestamp } from "../utils";
 
 const DB_NAME = "smart_bill_db";
 const DB_VERSION = 1;
@@ -134,10 +135,11 @@ export async function getAllBills(): Promise<StoredBillRecord[]> {
       const req = store.getAll();
       req.onsuccess = () => {
         const records = (req.result as StoredBillRecord[]) || [];
-        records.sort(
-          (a, b) =>
-            new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
-        );
+        records.sort((a, b) => {
+          const diff = getBillTimestamp(b.bill, b.updatedAt) - getBillTimestamp(a.bill, a.updatedAt);
+          if (diff !== 0) return diff;
+          return new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime();
+        });
         resolve(records);
       };
       req.onerror = () => resolve([]);
@@ -150,10 +152,11 @@ export async function getAllBills(): Promise<StoredBillRecord[]> {
       const raw = localStorage.getItem("smart_bill_history");
       if (!raw) return [];
       const list = JSON.parse(raw) as StoredBillRecord[];
-      list.sort(
-        (a, b) =>
-          new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
-      );
+      list.sort((a, b) => {
+        const diff = getBillTimestamp(b.bill, b.updatedAt) - getBillTimestamp(a.bill, a.updatedAt);
+        if (diff !== 0) return diff;
+        return new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime();
+      });
       return list;
     } catch {
       return [];
@@ -275,5 +278,66 @@ export function saveHostPaymentProfile(profile: HostPaymentProfile): void {
   } catch (err) {
     console.error("Failed to save host payment profile", err);
   }
+}
+
+// ----------------- Past Participants Reference -----------------
+
+export interface PastParticipant {
+  name: string;
+  usageCount: number;
+  lastUsed: string;
+}
+
+export function extractPastParticipants(bills: StoredBillRecord[]): PastParticipant[] {
+  const map = new Map<string, { displayName: string; count: number; lastUsed: string; lastTimestamp: number }>();
+
+  for (const record of bills) {
+    const timestamp = getBillTimestamp(record.bill, record.updatedAt);
+    const dateStr = record.bill?.date || record.updatedAt || record.bill?.createdAt || new Date().toISOString();
+    const participants = record.bill?.participants || [];
+
+    for (const p of participants) {
+      const cleanName = (p.name || "").trim();
+      if (!cleanName) continue;
+      const key = cleanName.toLowerCase();
+      const existing = map.get(key);
+      if (existing) {
+        existing.count += 1;
+        if (timestamp > existing.lastTimestamp) {
+          existing.lastTimestamp = timestamp;
+          existing.lastUsed = dateStr;
+          existing.displayName = cleanName; // Use most recent casing
+        }
+      } else {
+        map.set(key, {
+          displayName: cleanName,
+          count: 1,
+          lastUsed: dateStr,
+          lastTimestamp: timestamp,
+        });
+      }
+    }
+  }
+
+  const list: PastParticipant[] = Array.from(map.values()).map((item) => ({
+    name: item.displayName,
+    usageCount: item.count,
+    lastUsed: item.lastUsed,
+  }));
+
+  // Sort by usageCount descending (most frequent first), then by recency descending
+  list.sort((a, b) => {
+    if (b.usageCount !== a.usageCount) {
+      return b.usageCount - a.usageCount;
+    }
+    return new Date(b.lastUsed).getTime() - new Date(a.lastUsed).getTime();
+  });
+
+  return list;
+}
+
+export async function getPastParticipants(): Promise<PastParticipant[]> {
+  const bills = await getAllBills();
+  return extractPastParticipants(bills);
 }
 
