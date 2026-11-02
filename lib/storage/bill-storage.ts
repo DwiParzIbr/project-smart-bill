@@ -1,4 +1,5 @@
 import { BillCalculationResult, BillData, HostPaymentProfile } from "../types/bill";
+import { UserProfile } from "../types/user";
 import { getBillTimestamp } from "../utils";
 
 const DB_NAME = "smart_bill_db";
@@ -6,6 +7,7 @@ const DB_VERSION = 1;
 const DRAFT_KEY = "smart_bill_active_draft";
 const STORE_BILLS = "bills";
 const PAYMENT_PROFILE_KEY = "smart_bill_payment_profile";
+const USER_PROFILE_STORAGE_KEY = "smart_bill_user_profile";
 
 function openDB(): Promise<IDBDatabase | null> {
   if (typeof window === "undefined" || !window.indexedDB) {
@@ -277,6 +279,43 @@ export function saveHostPaymentProfile(profile: HostPaymentProfile): void {
     localStorage.setItem(PAYMENT_PROFILE_KEY, JSON.stringify(profile));
   } catch (err) {
     console.error("Failed to save host payment profile", err);
+  }
+}
+
+// ----------------- User Identity & App Profile -----------------
+
+export function getUserProfile(): UserProfile | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = localStorage.getItem(USER_PROFILE_STORAGE_KEY);
+    if (!raw) return null;
+    return JSON.parse(raw) as UserProfile;
+  } catch (err) {
+    console.error("Failed to load user profile", err);
+    return null;
+  }
+}
+
+export function saveUserProfile(profile: UserProfile): void {
+  if (typeof window === "undefined") return;
+  try {
+    localStorage.setItem(USER_PROFILE_STORAGE_KEY, JSON.stringify(profile));
+
+    // Also auto-sync host payment profile name if hostName is not yet set or matches
+    const currentPaymentProfile = getHostPaymentProfile();
+    if (currentPaymentProfile) {
+      if (!currentPaymentProfile.hostName || currentPaymentProfile.hostName === "Pengguna Smart Bill") {
+        currentPaymentProfile.hostName = profile.name;
+        saveHostPaymentProfile(currentPaymentProfile);
+      }
+    } else {
+      saveHostPaymentProfile({
+        hostName: profile.name,
+        accounts: [],
+      });
+    }
+  } catch (err) {
+    console.error("Failed to save user profile", err);
   }
 }
 

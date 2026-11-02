@@ -27,10 +27,15 @@ import {
   ArrowUpRight,
   BarChart3,
   Calendar,
+  Edit3,
+  Cloud,
 } from "lucide-react";
-import { getAllBills, StoredBillRecord, clearAllBills } from "@/lib/storage/bill-storage";
+import { getAllBills, StoredBillRecord, clearAllBills, getUserProfile, saveUserProfile } from "@/lib/storage/bill-storage";
 import { HostPaymentProfile, CorporateReimbursementProfile } from "@/lib/types/bill";
+import { UserProfile } from "@/lib/types/user";
 import { PaymentProfileModal } from "@/components/bill/payment-profile-modal";
+import { UserProfileModal } from "@/components/bill/user-profile-modal";
+import { AuthModal } from "@/components/auth/auth-modal";
 import { ConfirmDialog } from "@/components/ui/modal";
 import { formatCurrency, formatDateIndonesian } from "@/lib/utils";
 import {
@@ -46,8 +51,11 @@ const CORPORATE_PROFILE_STORAGE_KEY = "smart_bill_corporate_profile";
 export default function ProfilePage() {
   const [bills, setBills] = useState<StoredBillRecord[]>([]);
   const [selectedMonthKey, setSelectedMonthKey] = useState<string>("");
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [paymentProfile, setPaymentProfile] = useState<HostPaymentProfile | null>(null);
   const [corporateProfile, setCorporateProfile] = useState<CorporateReimbursementProfile | null>(null);
+  const [showUserProfileModal, setShowUserProfileModal] = useState(false);
+  const [showAuthModal, setShowAuthModal] = useState(false);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [showCorporateModal, setShowCorporateModal] = useState(false);
   const [showClearConfirm, setShowClearConfirm] = useState(false);
@@ -67,7 +75,13 @@ export default function ProfilePage() {
     // 1. Load bills count & total
     getAllBills().then((list) => setBills(list));
 
-    // 2. Load payment profile
+    // 2. Load user personal identity profile
+    const savedUser = getUserProfile();
+    if (savedUser) {
+      setUserProfile(savedUser);
+    }
+
+    // 3. Load payment profile
     try {
       const savedPay = localStorage.getItem(PAYMENT_PROFILE_STORAGE_KEY);
       if (savedPay) {
@@ -77,7 +91,7 @@ export default function ProfilePage() {
       console.error("Failed to load payment profile", e);
     }
 
-    // 3. Load corporate profile
+    // 4. Load corporate profile
     try {
       const savedCorp = localStorage.getItem(CORPORATE_PROFILE_STORAGE_KEY);
       if (savedCorp) {
@@ -89,6 +103,29 @@ export default function ProfilePage() {
       console.error("Failed to load corporate profile", e);
     }
   }, []);
+
+  const handleSaveUserProfile = (newProfile: UserProfile) => {
+    setUserProfile(newProfile);
+    saveUserProfile(newProfile);
+    showNotice("Profil berhasil diperbarui!");
+  };
+
+  const handleAuthSuccess = (email: string) => {
+    const current = userProfile || {
+      name: displayName,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+    const updated: UserProfile = {
+      ...current,
+      email,
+      isCloudSynced: true,
+      updatedAt: new Date().toISOString(),
+    };
+    setUserProfile(updated);
+    saveUserProfile(updated);
+    showNotice("Akun Cloud berhasil terhubung!");
+  };
 
   const handleSavePaymentProfile = (newProfile: HostPaymentProfile) => {
     setPaymentProfile(newProfile);
@@ -158,9 +195,12 @@ export default function ProfilePage() {
   };
 
   const displayName =
+    userProfile?.name ||
     paymentProfile?.hostName ||
     corporateProfile?.employeeName ||
     "Pengguna Smart Bill";
+
+  const avatarColor = userProfile?.avatarColor || "from-sky-600 to-cyan-500";
 
   const initials = displayName
     .split(" ")
@@ -183,29 +223,47 @@ export default function ProfilePage() {
         {/* User Profile Header Card */}
         <div className="bg-white rounded-3xl p-5 border border-slate-200/80 shadow-xs relative overflow-hidden">
           <div className="absolute top-0 right-0 w-36 h-36 bg-gradient-to-bl from-sky-100/60 to-transparent rounded-bl-full pointer-events-none" />
-          <div className="flex items-center gap-4 relative">
-            <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-sky-600 to-cyan-500 text-white font-black text-xl flex items-center justify-center shadow-md shadow-sky-500/20 shrink-0">
-              {initials || "SB"}
-            </div>
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2">
-                <h1 className="font-black text-slate-900 text-lg truncate">
-                  {displayName}
-                </h1>
-                <span className="px-2 py-0.5 bg-sky-50 text-sky-700 text-[10px] font-bold rounded-full border border-sky-200 shrink-0">
-                  PWA User
-                </span>
+          <div className="flex items-start justify-between gap-3 relative">
+            <div className="flex items-center gap-3.5 min-w-0">
+              <div className={`w-16 h-16 rounded-2xl bg-gradient-to-tr ${avatarColor} text-white font-black text-xl flex items-center justify-center shadow-md shadow-sky-500/20 shrink-0`}>
+                {initials || "SB"}
               </div>
-              <p className="text-xs text-slate-500 truncate mt-0.5">
-                {corporateProfile?.companyName
-                  ? `${corporateProfile.companyName} • ${corporateProfile.department || "Karyawan"}`
-                  : "Smart Bill"}
-              </p>
-              <p className="text-[11px] text-emerald-600 font-semibold mt-1 flex items-center gap-1">
-                <ShieldCheck className="w-3.5 h-3.5" />
-                Data tersimpan aman di perangkat lokal
-              </p>
+              <div className="min-w-0">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <h1 className="font-black text-slate-900 text-lg truncate">
+                    {displayName}
+                  </h1>
+                  <span className="px-2 py-0.5 bg-sky-50 text-sky-700 text-[10px] font-bold rounded-full border border-sky-200 shrink-0">
+                    {userProfile?.isCloudSynced ? "Cloud Active" : "PWA User"}
+                  </span>
+                </div>
+                {userProfile?.bio ? (
+                  <p className="text-xs text-slate-600 truncate mt-0.5 italic">
+                    &ldquo;{userProfile.bio}&rdquo;
+                  </p>
+                ) : (
+                  <p className="text-xs text-slate-500 truncate mt-0.5">
+                    {corporateProfile?.companyName
+                      ? `${corporateProfile.companyName} • ${corporateProfile.department || "Karyawan"}`
+                      : userProfile?.phone || "Smart Bill"}
+                  </p>
+                )}
+                <p className="text-[11px] text-emerald-600 font-semibold mt-1 flex items-center gap-1">
+                  <ShieldCheck className="w-3.5 h-3.5" />
+                  {userProfile?.isCloudSynced ? "Tersinkronisasi ke Cloud" : "Data tersimpan aman di perangkat lokal"}
+                </p>
+              </div>
             </div>
+
+            {/* Edit Profile Button */}
+            <button
+              type="button"
+              onClick={() => setShowUserProfileModal(true)}
+              className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 active:scale-95 text-slate-700 text-xs font-bold rounded-xl transition flex items-center gap-1.5 shrink-0 shadow-2xs min-touch-target"
+            >
+              <Edit3 className="w-3.5 h-3.5 text-slate-500" />
+              <span>Ubah</span>
+            </button>
           </div>
 
           {/* Quick Stats Grid */}
@@ -224,6 +282,51 @@ export default function ProfilePage() {
                 {formatCurrency(totalSpent, "IDR")}
               </p>
             </div>
+          </div>
+        </div>
+
+        {/* Section: Akun & Pencadangan Cloud */}
+        <div className="bg-white rounded-3xl p-5 border border-slate-200/80 shadow-xs space-y-3">
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-2.5 min-w-0">
+              <div
+                className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 ${
+                  userProfile?.isCloudSynced
+                    ? "bg-emerald-50 text-emerald-600"
+                    : "bg-sky-50 text-sky-600"
+                }`}
+              >
+                <Cloud className="w-4 h-4" />
+              </div>
+              <div className="min-w-0">
+                <div className="flex items-center gap-2">
+                  <h2 className="font-bold text-slate-900 text-sm truncate">
+                    Akun & Pencadangan Cloud
+                  </h2>
+                  <span
+                    className={`text-[10px] font-bold px-2 py-0.5 rounded-full border shrink-0 ${
+                      userProfile?.isCloudSynced
+                        ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                        : "bg-slate-100 text-slate-600 border-slate-200"
+                    }`}
+                  >
+                    {userProfile?.isCloudSynced ? "Terhubung Cloud" : "Mode Tamu"}
+                  </span>
+                </div>
+                <p className="text-[11px] text-slate-500 mt-0.5 truncate">
+                  {userProfile?.isCloudSynced
+                    ? `Aktif (${userProfile.email || "Akun Terhubung"})`
+                    : "Cadangkan riwayat tagihan & data rekan Anda agar aman saat berganti perangkat"}
+                </p>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => setShowAuthModal(true)}
+              className="text-xs font-bold text-sky-600 hover:text-sky-700 px-3 py-1.5 bg-sky-50 hover:bg-sky-100 rounded-xl transition min-touch-target shrink-0"
+            >
+              {userProfile?.isCloudSynced ? "Kelola" : "Masuk / Daftar"}
+            </button>
           </div>
         </div>
 
@@ -593,6 +696,21 @@ export default function ProfilePage() {
           </p>
         </div>
       </main>
+
+      {/* Modal Ubah Profil Saya */}
+      <UserProfileModal
+        isOpen={showUserProfileModal}
+        onClose={() => setShowUserProfileModal(false)}
+        initialProfile={userProfile}
+        onSave={handleSaveUserProfile}
+      />
+
+      {/* Modal Akun & Cloud Sync */}
+      <AuthModal
+        isOpen={showAuthModal}
+        onClose={() => setShowAuthModal(false)}
+        onSuccess={handleAuthSuccess}
+      />
 
       {/* Modal Pengaturan Rekening & QRIS */}
       <PaymentProfileModal
