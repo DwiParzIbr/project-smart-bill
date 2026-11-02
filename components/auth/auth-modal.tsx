@@ -55,24 +55,35 @@ export function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps) {
 
         setIsLoading(false);
         if (error) {
-          setNotification({ type: "error", text: error.message });
+          const msg = error.message.includes("User already registered")
+            ? "Email sudah terdaftar. Silakan pilih tab Masuk."
+            : error.message;
+          setNotification({ type: "error", text: msg });
           return;
         }
 
         const user = data.user;
-        if (user) {
+        const session = data.session;
+        if (user && session) {
           syncLocalBillsToSupabase(user.id);
         }
 
-        setNotification({
-          type: "success",
-          text: "Pendaftaran berhasil! Cek email untuk konfirmasi atau masuk langsung.",
-        });
+        if (session) {
+          setNotification({
+            type: "success",
+            text: "Pendaftaran berhasil! Akun Anda aktif.",
+          });
+        } else {
+          setNotification({
+            type: "success",
+            text: "Pendaftaran berhasil! Cek kotak masuk/spam email Anda untuk konfirmasi sebelum masuk.",
+          });
+        }
 
         setTimeout(() => {
           if (onSuccess) onSuccess(email);
           onClose();
-        }, 1200);
+        }, 1500);
       } else {
         const { data, error } = await supabase.auth.signInWithPassword({
           email,
@@ -81,7 +92,12 @@ export function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps) {
 
         setIsLoading(false);
         if (error) {
-          setNotification({ type: "error", text: error.message });
+          const msg = error.message.includes("Email not confirmed")
+            ? "Email belum dikonfirmasi. Periksa kotak masuk/spam email Anda untuk verifikasi."
+            : error.message.includes("Invalid login credentials")
+            ? "Email atau kata sandi salah. Silakan periksa kembali."
+            : error.message;
+          setNotification({ type: "error", text: msg });
           return;
         }
 

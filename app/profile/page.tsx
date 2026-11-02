@@ -29,6 +29,8 @@ import {
   Calendar,
   Edit3,
   Cloud,
+  LogOut,
+  RefreshCw,
 } from "lucide-react";
 import { getAllBills, StoredBillRecord, clearAllBills, getUserProfile, saveUserProfile } from "@/lib/storage/bill-storage";
 import { HostPaymentProfile, CorporateReimbursementProfile } from "@/lib/types/bill";
@@ -38,6 +40,8 @@ import { UserProfileModal } from "@/components/bill/user-profile-modal";
 import { AuthModal } from "@/components/auth/auth-modal";
 import { ConfirmDialog } from "@/components/ui/modal";
 import { formatCurrency, formatDateIndonesian } from "@/lib/utils";
+import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
+import { syncLocalBillsToSupabase, fetchBillsFromSupabase } from "@/lib/supabase/sync";
 import {
   groupBillsByMonth,
   MonthSummary,
@@ -60,6 +64,7 @@ export default function ProfilePage() {
   const [showCorporateModal, setShowCorporateModal] = useState(false);
   const [showClearConfirm, setShowClearConfirm] = useState(false);
   const [copiedNotification, setCopiedNotification] = useState<string | null>(null);
+  const [isSyncing, setIsSyncing] = useState(false);
 
   // Corporate Profile edit state
   const [tempCorpProfile, setTempCorpProfile] = useState<CorporateReimbursementProfile>({
@@ -102,7 +107,114 @@ export default function ProfilePage() {
     } catch (e) {
       console.error("Failed to load corporate profile", e);
     }
+
+    // 5. Check Supabase active session & sync
+    if (isSupabaseConfigured()) {
+      const supabase = createClient();
+      if (supabase) {
+        supabase.auth.getSession().then(({ data: { session } }) => {
+          if (session?.user) {
+            const user = session.user;
+            setUserProfile((prev) => {
+              const updated: UserProfile = {
+                name: user.user_metadata?.full_name || prev?.name || "Pengguna Smart Bill",
+                email: user.email || prev?.email,
+                avatarColor: user.user_metadata?.avatar_color || prev?.avatarColor,
+                phone: user.user_metadata?.phone || prev?.phone,
+                bio: prev?.bio,
+                isCloudSynced: true,
+                createdAt: prev?.createdAt || user.created_at,
+                updatedAt: new Date().toISOString(),
+              };
+              saveUserProfile(updated);
+              return updated;
+            });
+            fetchBillsFromSupabase(user.id).then(() => {
+              getAllBills().then((list) => setBills(list));
+            });
+          }
+        });
+
+        const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
+          if (event === "SIGNED_IN" && session?.user) {
+            const user = session.user;
+            setUserProfile((prev) => {
+              const updated: UserProfile = {
+                name: user.user_metadata?.full_name || prev?.name || "Pengguna Smart Bill",
+                email: user.email || prev?.email,
+                avatarColor: user.user_metadata?.avatar_color || prev?.avatarColor,
+                phone: user.user_metadata?.phone || prev?.phone,
+                bio: prev?.bio,
+                isCloudSynced: true,
+                createdAt: prev?.createdAt || user.created_at,
+                updatedAt: new Date().toISOString(),
+              };
+              saveUserProfile(updated);
+              return updated;
+            });
+            fetchBillsFromSupabase(user.id).then(() => {
+              getAllBills().then((list) => setBills(list));
+            });
+          } else if (event === "SIGNED_OUT") {
+            setUserProfile((prev) => {
+              if (!prev) return null;
+              const updated: UserProfile = {
+                ...prev,
+                isCloudSynced: false,
+              };
+              saveUserProfile(updated);
+              return updated;
+            });
+          }
+        });
+
+        return () => {
+          authListener.subscription.unsubscribe();
+        };
+      }
+    }
   }, []);
+
+  const handleManualSync = async () => {
+    if (!isSupabaseConfigured()) {
+      showNotice("Koneksi Supabase belum aktif.");
+      return;
+    }
+    const supabase = createClient();
+    if (!supabase) return;
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session?.user) {
+      setShowAuthModal(true);
+      return;
+    }
+    setIsSyncing(true);
+    try {
+      await syncLocalBillsToSupabase(session.user.id);
+      await fetchBillsFromSupabase(session.user.id);
+      const updatedBills = await getAllBills();
+      setBills(updatedBills);
+      showNotice("Semua data berhasil disinkronkan ke Cloud!");
+    } catch {
+      showNotice("Gagal menyinkronkan data.");
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
+  const handleSignOut = async () => {
+    if (isSupabaseConfigured()) {
+      const supabase = createClient();
+      if (supabase) {
+        await supabase.auth.signOut();
+      }
+    }
+    if (userProfile) {
+      const updated = { ...userProfile, isCloudSynced: false };
+      setUserProfile(updated);
+      saveUserProfile(updated);
+    }
+    showNotice("Berhasil keluar dari Akun Cloud.");
+  };
 
   const handleSaveUserProfile = (newProfile: UserProfile) => {
     setUserProfile(newProfile);
@@ -320,13 +432,36 @@ export default function ProfilePage() {
                 </p>
               </div>
             </div>
-            <button
-              type="button"
-              onClick={() => setShowAuthModal(true)}
-              className="text-xs font-bold text-sky-600 hover:text-sky-700 px-3 py-1.5 bg-sky-50 hover:bg-sky-100 rounded-xl transition min-touch-target shrink-0"
-            >
-              {userProfile?.isCloudSynced ? "Kelola" : "Masuk / Daftar"}
-            </button>
+            {userProfile?.isCloudSynced ? (
+              <div className="flex items-center gap-1.5 shrink-0">
+                <button
+                  type="button"
+                  onClick={handleManualSync}
+                  disabled={isSyncing}
+                  className="p-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl transition min-touch-target shrink-0"
+                  title="Sinkronkan Sekarang"
+                  aria-label="Sinkronkan Sekarang"
+                >
+                  <RefreshCw className={`w-4 h-4 ${isSyncing ? "animate-spin text-sky-600" : ""}`} />
+                </button>
+                <button
+                  type="button"
+                  onClick={handleSignOut}
+                  className="text-xs font-bold text-red-600 hover:text-red-700 px-3 py-1.5 bg-red-50 hover:bg-red-100 rounded-xl transition min-touch-target shrink-0 flex items-center gap-1"
+                >
+                  <LogOut className="w-3.5 h-3.5" />
+                  <span>Keluar</span>
+                </button>
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={() => setShowAuthModal(true)}
+                className="text-xs font-bold text-sky-600 hover:text-sky-700 px-3 py-1.5 bg-sky-50 hover:bg-sky-100 rounded-xl transition min-touch-target shrink-0"
+              >
+                Masuk / Daftar
+              </button>
+            )}
           </div>
         </div>
 
