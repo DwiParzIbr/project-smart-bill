@@ -151,7 +151,10 @@ export function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps) {
         });
         if (error) {
           setIsLoading(false);
-          setNotification({ type: "error", text: error.message });
+          const msg = error.message.toLowerCase().includes("provider is not enabled")
+            ? "Login Google belum diaktifkan di Supabase. Silakan masuk / daftar dengan Email & Sandi di atas."
+            : error.message;
+          setNotification({ type: "error", text: msg });
           return;
         }
         return;
