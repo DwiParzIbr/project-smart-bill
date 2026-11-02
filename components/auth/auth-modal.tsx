@@ -1,7 +1,9 @@
 "use client";
 
 import React, { useState } from "react";
-import { X, Mail, Lock, User, Cloud, ShieldCheck, ArrowRight, CheckCircle2 } from "lucide-react";
+import { X, Mail, Lock, User, Cloud, ShieldCheck, ArrowRight, CheckCircle2, AlertCircle } from "lucide-react";
+import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
+import { syncLocalBillsToSupabase, fetchBillsFromSupabase } from "@/lib/supabase/sync";
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -19,7 +21,9 @@ export function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps) {
 
   if (!isOpen) return null;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const isConfigured = isSupabaseConfigured();
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email || !password) {
       setNotification({ type: "error", text: "Silakan isi email dan kata sandi." });
@@ -29,7 +33,79 @@ export function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps) {
     setIsLoading(true);
     setNotification(null);
 
-    // Simulate seamless auth handshake (ready for Supabase/OAuth hookup)
+    // If Supabase is configured with real URL and Key
+    if (isConfigured) {
+      const supabase = createClient();
+      if (!supabase) {
+        setIsLoading(false);
+        setNotification({ type: "error", text: "Gagal menghubungkan ke Supabase." });
+        return;
+      }
+
+      if (tab === "register") {
+        const { data, error } = await supabase.auth.signUp({
+          email,
+          password,
+          options: {
+            data: {
+              full_name: fullName.trim() || undefined,
+            },
+          },
+        });
+
+        setIsLoading(false);
+        if (error) {
+          setNotification({ type: "error", text: error.message });
+          return;
+        }
+
+        const user = data.user;
+        if (user) {
+          syncLocalBillsToSupabase(user.id);
+        }
+
+        setNotification({
+          type: "success",
+          text: "Pendaftaran berhasil! Cek email untuk konfirmasi atau masuk langsung.",
+        });
+
+        setTimeout(() => {
+          if (onSuccess) onSuccess(email);
+          onClose();
+        }, 1200);
+      } else {
+        const { data, error } = await supabase.auth.signInWithPassword({
+          email,
+          password,
+        });
+
+        setIsLoading(false);
+        if (error) {
+          setNotification({ type: "error", text: error.message });
+          return;
+        }
+
+        const user = data.user;
+        if (user) {
+          // Sync existing local bills to cloud and pull remote bills
+          syncLocalBillsToSupabase(user.id);
+          fetchBillsFromSupabase(user.id);
+        }
+
+        setNotification({
+          type: "success",
+          text: "Berhasil masuk ke Akun Cloud!",
+        });
+
+        setTimeout(() => {
+          if (onSuccess) onSuccess(email);
+          onClose();
+        }, 1000);
+      }
+      return;
+    }
+
+    // Fallback simulation mode if Supabase env vars not yet added
     setTimeout(() => {
       setIsLoading(false);
       setNotification({
@@ -44,8 +120,29 @@ export function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps) {
     }, 700);
   };
 
-  const handleGoogleLogin = () => {
+  const handleGoogleLogin = async () => {
     setIsLoading(true);
+    setNotification(null);
+
+    if (isConfigured) {
+      const supabase = createClient();
+      if (supabase) {
+        const { error } = await supabase.auth.signInWithOAuth({
+          provider: "google",
+          options: {
+            redirectTo: typeof window !== "undefined" ? window.location.origin : undefined,
+          },
+        });
+        if (error) {
+          setIsLoading(false);
+          setNotification({ type: "error", text: error.message });
+          return;
+        }
+        return;
+      }
+    }
+
+    // Fallback simulation
     setTimeout(() => {
       setIsLoading(false);
       setNotification({
@@ -73,7 +170,14 @@ export function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps) {
               <Cloud className="w-4 h-4" />
             </div>
             <div>
-              <h2 className="font-bold text-slate-900 text-base">Akun Smart Bill Cloud</h2>
+              <div className="flex items-center gap-1.5">
+                <h2 className="font-bold text-slate-900 text-base">Akun Smart Bill Cloud</h2>
+                {isConfigured && (
+                  <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-md bg-emerald-100 text-emerald-700">
+                    Supabase Live
+                  </span>
+                )}
+              </div>
               <p className="text-[11px] text-slate-400">Cadangkan tagihan & sinkronkan antar-perangkat</p>
             </div>
           </div>
@@ -123,7 +227,11 @@ export function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps) {
                 : "bg-rose-50 border border-rose-200 text-rose-800"
             }`}
           >
-            <CheckCircle2 className="w-4 h-4 shrink-0" />
+            {notification.type === "success" ? (
+              <CheckCircle2 className="w-4 h-4 shrink-0" />
+            ) : (
+              <AlertCircle className="w-4 h-4 shrink-0 text-rose-600" />
+            )}
             <span className="font-medium">{notification.text}</span>
           </div>
         )}
